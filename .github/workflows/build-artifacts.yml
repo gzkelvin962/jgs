@@ -1,0 +1,55 @@
+name: Build distributable artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "outputs/jinggangshan-miniapp-prototype.html"
+      - "outputs/jinggangshan-miniapp-prototype.zip"
+      - "outputs/assets/stickers/*-official-pack.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build official sticker packs
+        shell: pwsh
+        run: |
+          $packs = @{
+            "bamboo-rice" = "jinggangshan-bamboo-rice-official-pack.zip"
+            "red-bugle" = "jinggangshan-red-bugle-official-pack.zip"
+            "red-rice" = "jinggangshan-red-rice-official-pack.zip"
+            "red-soldier" = "jinggangshan-red-soldier-official-pack.zip"
+            "red-torch" = "jinggangshan-red-torch-official-pack.zip"
+          }
+
+          foreach ($pack in $packs.GetEnumerator()) {
+            $source = "outputs/assets/stickers/$($pack.Key)/*"
+            $target = "outputs/assets/stickers/$($pack.Value)"
+            Compress-Archive -Path $source -DestinationPath $target -Force
+          }
+
+      - name: Build standalone prototype and archive
+        shell: pwsh
+        run: ./tools/build-export.ps1
+
+      - name: Commit generated artifacts
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add outputs/jinggangshan-miniapp-prototype.html
+          git add outputs/jinggangshan-miniapp-prototype.zip
+          git add outputs/assets/stickers/*-official-pack.zip
+          if (-not (git diff --cached --quiet)) {
+            git commit -m "构建独立版与表情包下载文件"
+            git push
+          }

@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>井冈山 LBS 研学答题方案预览</title>
+  <style>
+    :root {
+      --red: #b92c23;
+      --red-soft: #fae9e5;
+      --green: #236946;
+      --green-soft: #e8f2eb;
+      --gold: #c58c30;
+      --gold-soft: #f6ecd7;
+      --ink: #24211d;
+      --muted: #756e64;
+      --paper: #fbf7ee;
+      --surface: #fffdf8;
+      --line: rgba(36, 33, 29, .12);
+      --shadow: 0 18px 42px rgba(74, 45, 27, .13);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(35, 105, 70, .05) 1px, transparent 1px),
+        linear-gradient(rgba(35, 105, 70, .05) 1px, transparent 1px),
+        #f5f0e6;
+      background-size: 28px 28px;
+    }
+
+    button { border: 0; font: inherit; cursor: pointer; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      min-height: 72px;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(251, 247, 238, .95);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .topbar h1 { margin: 0; font-size: 21px; }
+    .topbar p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+
+    .prototype-note {
+      padding: 7px 10px;
+      border: 1px solid rgba(35, 105, 70, .25);
+      border-radius: 6px;
+      color: var(--green);
+      background: var(--green-soft);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    main {
+      width: min(1260px, calc(100% - 32px));
+      margin: 26px auto 44px;
+    }
+
+    .intro {
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: end;
+    }
+
+    .intro h2 { margin: 0; font-size: 28px; }
+    .intro p { max-width: 720px; margin: 8px 0 0; color: var(--muted); line-height: 1.7; font-size: 14px; }
+
+    .legend { display: flex; gap: 12px; color: var(--muted); font-size: 12px; }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .legend i { width: 9px; height: 9px; border-radius: 50%; }
+
+    .solutions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .solution {
+      min-width: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .solution-head {
+      min-height: 88px;
+      padding: 0 4px;
+      display: grid;
+      align-content: start;
+      gap: 5px;
+    }
+
+    .solution-kicker {
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .solution h3 { margin: 0; font-size: 19px; }
+    .solution-head p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+    .phone {
+      width: 100%;
+      min-height: 690px;
+      border: 9px solid #1d1a17;
+      border-radius: 30px;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .statusbar {
+      height: 30px;
+      padding: 8px 16px 0;
+      background: #1d1a17;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .appbar {
+      min-height: 58px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .back {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #f3e5d7;
+      color: var(--red);
+      font-size: 22px;
+    }
+
+    .appbar strong { text-align: center; font-size: 16px; }
+
+    .points {
+      min-width: 54px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: var(--gold);
+      background: var(--gold-soft);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .screen-content {
+      padding: 14px;
+      flex: 1;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .map-scene {
+      position: relative;
+      height: 225px;
+      border-radius: 8px;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(20, 44, 31, .18), rgba(20, 44, 31, .38)),
+        url("../jinggangshan-hero.png") center / cover;
+    }
+
+    .map-scene::after {
+      content: "";
+      position: absolute;
+      left: 27%;
+      top: 24%;
+      width: 48%;
+      height: 55%;
+      border: 3px dashed rgba(255, 255, 255, .8);
+      border-left-color: transparent;
+      border-bottom-color: transparent;
+      border-radius: 48%;
+      transform: rotate(18deg);
+    }
+
+    .marker {
+      position: absolute;
+      z-index: 2;
+      width: 34px;
+      height: 34px;
+      border: 3px solid #fff;
+      border-radius: 50% 50% 50% 10%;
+      transform: rotate(-45deg);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+    }
+
+    .marker span { transform: rotate(45deg); color: #fff; font-size: 11px; font-weight: 900; }
+    .marker.done { left: 17%; top: 62%; background: var(--green); }
+    .marker.current { left: 47%; top: 34%; background: var(--red); animation: pulse 1.5s infinite; }
+    .marker.locked { right: 14%; top: 14%; background: #817c74; }
+
+    @keyframes pulse {
+      50% { box-shadow: 0 0 0 9px rgba(185, 44, 35, .18); }
+    }
+
+    .location-bubble {
+      position: absolute;
+      left: 34%;
+      bottom: 12px;
+      z-index: 3;
+      padding: 7px 9px;
+      border-radius: 6px;
+      background: rgba(255, 253, 248, .94);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .task-list { display: grid; gap: 7px; }
+
+    .task-row {
+      min-height: 58px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .task-index {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #efe6da;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .task-row.current .task-index { color: #fff; background: var(--red); }
+    .task-row.done .task-index { color: #fff; background: var(--green); }
+    .task-row strong { display: block; font-size: 13px; }
+    .task-row small { color: var(--muted); font-size: 10px; }
+    .task-state { color: var(--muted); font-size: 10px; font-weight: 800; }
+    .task-row.done .task-state { color: var(--green); }
+    .task-row.current .task-state { color: var(--red); }
+
+    .primary, .secondary {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 7px;
+      font-weight: 900;
+    }
+
+    .primary { color: #fff; background: var(--red); }
+    .primary:disabled { opacity: .4; cursor: not-allowed; }
+    .secondary { color: var(--green); background: var(--green-soft); }
+
+    .quiz {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      display: grid;
+      gap: 10px;
+    }
+
+    .quiz[hidden] { display: none; }
+    .quiz-label { color: var(--red); font-size: 11px; font-weight: 900; }
+    .quiz h4 { margin: 0; font-size: 14px; line-height: 1.55; }
+    .answers { display: grid; gap: 7px; }
+
+    .answer {
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      background: #f8f3ea;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .answer.correct { color: var(--green); border-color: var(--green); background: var(--green-soft); }
+    .answer.wrong { color: var(--red); border-color: var(--red); background: var(--red-soft); }
+
+    .feedback {
+      min-height: 34px;
+      padding: 8px 9px;
+      border-radius: 6px;
+      color: var(--muted);
+      background: #f0ece5;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .feedback.success { color: var(--green); background: var(--green-soft); }
+    .feedback.hint { color: #77531c; background: var(--gold-soft); }
+
+    .place-hero {
+      position: relative;
+      height: 160px;
+      border-radius: 8px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, transparent, rgba(21, 25, 20, .72)),
+        url("../jinggangshan-hero.png") center / cover;
+      color: #fff;
+      display: flex;
+      align-items: end;
+      padding: 14px;
+    }
+
+    .place-hero h4 { margin: 0; font-size: 19px; }
+    .place-hero p { margin: 4px 0 0; font-size: 11px; }
+
+    .verified {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: var(--green);
+      background: rgba(240, 250, 243, .94);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .knowledge {
+      padding: 11px;
+      border-left: 4px solid var(--gold);
+      background: var(--gold-soft);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .report {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .report h4 { margin: 0 0 8px; font-size: 13px; }
+    .report-line { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 11px; }
+    .report-line + .report-line { margin-top: 6px; }
+
+    .passport-head {
+      min-height: 116px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #243f32;
+      color: #fff;
+      display: grid;
+      grid-template-columns: 1fr 78px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .passport-head h4 { margin: 0; font-size: 18px; }
+    .passport-head p { margin: 6px 0 0; color: rgba(255, 255, 255, .7); font-size: 11px; line-height: 1.5; }
+    .passport-head img { width: 78px; height: 78px; object-fit: contain; }
+
+    .team-progress { display: grid; gap: 7px; }
+    .progress-meta { display: flex; justify-content: space-between; font-size: 11px; }
+    .progress-track { height: 8px; border-radius: 4px; overflow: hidden; background: #e9e1d6; }
+    .progress-track i { display: block; width: 50%; height: 100%; background: var(--green); transition: width .3s ease; }
+
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .stamp {
+      aspect-ratio: 1;
+      padding: 5px;
+      border: 1px dashed #b9aea0;
+      border-radius: 8px;
+      background: var(--surface);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .stamp b {
+      width: 35px;
+      height: 35px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+    }
+
+    .stamp.done { color: var(--red); background: var(--red-soft); transform: rotate(-3deg); }
+    .stamp.current { color: var(--green); background: var(--green-soft); }
+
+    .ranking { display: grid; gap: 6px; }
+    .rank-row { display: grid; grid-template-columns: 24px 1fr auto; gap: 8px; align-items: center; font-size: 11px; }
+    .rank-row b { color: var(--red); }
+    .rank-row em { color: var(--gold); font-style: normal; font-weight: 900; }
+
+    .fit-note {
+      min-height: 84px;
+      padding: 12px 4px 0;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .fit-note b { color: var(--ink); }
+    .fit-note span { color: var(--green); font-weight: 800; }
+
+    .footer-actions {
+      margin-top: 24px;
+      padding: 16px 0 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .reset {
+      padding: 9px 14px;
+      border-radius: 6px;
+      background: #2d2924;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    @media (max-width: 980px) {
+      .solutions {
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(330px, 82vw);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 0 2px 18px;
+      }
+      .solution { scroll-snap-align: start; }
+      .intro { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .topbar { padding: 10px 14px; }
+      .topbar h1 { font-size: 17px; }
+      .topbar p { display: none; }
+      .prototype-note { white-space: normal; text-align: right; }
+      main { width: calc(100% - 20px); margin-top: 18px; }
+      .intro h2 { font-size: 23px; }
+      .legend { flex-wrap: wrap; }
+      .solutions { grid-auto-columns: minmax(310px, 92vw); }
+      .phone { min-height: 680px; }
+      .footer-actions { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>井冈山 AI 研学答题闯关</h1>
+      <p>LBS 到达触发 · AI 动态出题 · 积分激励 · 研学报告沉淀</p>
+    </div>
+    <div class="prototype-note">独立方案预览，不修改现有小程序</div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div>
+        <h2>三种可选交互方案</h2>
+        <p>三种方案都以“到达景点后解锁答题”为核心，但分别侧重路线探索、知识深度和团队协作。下面的按钮与答题选项均可点击试用。</p>
+      </div>
+      <div class="legend" aria-label="状态图例">
+        <span><i style="background:#236946"></i>已完成</span>
+        <span><i style="background:#b92c23"></i>当前位置</span>
+        <span><i style="background:#817c74"></i>未解锁</span>
+      </div>
+    </section>
+
+    <section class="solutions">
+      <article class="solution" data-demo="map">
+        <div class="solution-head">
+          <span class="solution-kicker">方案 A · 探索驱动</span>
+          <h3>研学闯关地图</h3>
+          <p>把路线、定位和任务进度放在同一屏，适合自由探索和多景点串联。</p>
+        </div>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>5G 100%</span></div>
+          <div class="appbar">
+            <button class="back" type="button" aria-label="返回">‹</button>
+            <strong>研学闯关地图</strong>
+            <span class="points"><b data-points>120</b> 分</span>
+          </div>
+          <div class="screen-content">
+            <div class="map-scene">
+              <div class="marker done"><span>✓</span></div>
+              <div class="marker current"><span>2</span></div>
+              <div class="marker locked"><span>3</span></div>
+              <div class="location-bubble" data-location-text>距黄洋界任务点 86 米</div>
+            </div>
+            <div class="task-list">
+              <div class="task-row done">
+                <span class="task-index">✓</span>
+                <div><strong>茨坪革命旧址</strong><small>完成旧址观察题</small></div>
+                <span class="task-state">+20 分</span>
+              </div>
+              <div class="task-row current" data-current-row>
+                <span class="task-index">2</span>
+                <div><strong>黄洋界哨口</strong><small>进入 100 米范围后解锁</small></div>
+                <span class="task-state" data-state>接近中</span>
+              </div>
+              <div class="task-row">
+                <span class="task-index">3</span>
+                <div><strong>八角楼旧居</strong><small>完成上一站后开放</small></div>
+                <span class="task-state">未解锁</span>
+              </div>
+            </div>
+            <button class="primary" type="button" data-arrive data-target="quiz-map">模拟到达黄洋界</button>
+            <div class="quiz" id="quiz-map" hidden>
+              <span class="quiz-label">黄洋界 · 到达题　答对 +30 分</span>
+              <h4>黄洋界能够成为重要哨口，与哪项地理条件关系最密切？</h4>
+              <div class="answers">
+                <button class="answer" type="button" data-answer>附近水田面积广阔</button>
+                <button class="answer" type="button" data-answer data-correct data-reward="30">地势险要，便于观察与防守</button>
+                <button class="answer" type="button" data-answer>距离城市商业区较近</button>
+              </div>
+              <div class="feedback" data-feedback>选择答案后，AI 会结合现场地形给出讲解。</div>
+            </div>
+          </div>
+        </div>
+        <div class="fit-note">
+          <b>更适合：中小学生、亲子研学、自由行</b>
+          <span>优势：路线感强，解锁反馈直接，容易形成连续游览动力。</span>
+          <div>注意：需要较稳定的 GPS 与景点围栏配置。</div>
+        </div>
+      </article>
+
+      <article class="solution" data-demo="deep">
+        <div class="solution-head">
+          <span class="solution-kicker">方案 B · 学习驱动</span>
+          <h3>景点知识任务卡</h3>
+          <p>到达后先看现场知识，再由 AI 出题与讲评，适合课程化研学。</p>
+        </div>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>5G 100%</span></div>
+          <div class="appbar">
+            <button class="back" type="button" aria-label="返回">‹</button>
+            <strong>黄洋界研学任务</strong>
+            <span class="points"><b data-points>80</b> 分</span>
+          </div>
+          <div class="screen-content">
+            <div class="place-hero">
+              <span class="verified">定位已验证 · 28 米</span>
+              <div>
+                <h4>黄洋界哨口</h4>
+                <p>现场观察任务 2/3 · 建议用时 8 分钟</p>
+              </div>
+            </div>
+            <div class="knowledge">
+              <b>观察提示：</b>先看山口两侧地形和视野，再思考这里为什么适合作为警戒与防守位置。
+            </div>
+            <div class="quiz">
+              <span class="quiz-label">AI 动态题　难度：大学研学</span>
+              <h4>如果你是现场讲解员，应如何把地形观察与黄洋界保卫战联系起来？</h4>
+              <div class="answers">
+                <button class="answer" type="button" data-answer>只介绍海拔数字，不讨论历史</button>
+                <button class="answer" type="button" data-answer data-correct data-reward="40">从山口视野、道路条件和防守组织三个方面解释</button>
+                <button class="answer" type="button" data-answer>只复述纪念碑上的文字</button>
+              </div>
+              <div class="feedback" data-feedback>答题后自动生成讲评，并写入个人研学报告。</div>
+            </div>
+            <div class="report">
+              <h4>研学报告素材</h4>
+              <div class="report-line"><span>现场观察</span><b data-report-observation>等待答题</b></div>
+              <div class="report-line"><span>知识得分</span><b data-report-score>0 / 40</b></div>
+              <div class="report-line"><span>AI 讲评</span><b data-report-comment>尚未生成</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="fit-note">
+          <b>更适合：大学生、学校课程、主题研学</b>
+          <span>优势：答题不是死记选项，能把现场观察转成报告内容。</span>
+          <div>注意：需要按年龄、课程主题控制题目难度与史实来源。</div>
+        </div>
+      </article>
+
+      <article class="solution" data-demo="team">
+        <div class="solution-head">
+          <span class="solution-kicker">方案 C · 协作驱动</span>
+          <h3>团队研学积分护照</h3>
+          <p>景点任务转化为团队印章和排名，适合班级、社团与研学营。</p>
+        </div>
+        <div class="phone">
+          <div class="statusbar"><span>9:41</span><span>5G 100%</span></div>
+          <div class="appbar">
+            <button class="back" type="button" aria-label="返回">‹</button>
+            <strong>星火研学队</strong>
+            <span class="points"><b data-points>260</b> 分</span>
+          </div>
+          <div class="screen-content">
+            <div class="passport-head">
+              <div>
+                <h4>井冈山研学护照</h4>
+                <p>4 人小队 · 已完成 3/6 个景点任务<br>今日连续答对 2 题</p>
+              </div>
+              <img src="../assets/stickers/red-soldier/01.png" alt="小红军收到表情">
+            </div>
+            <div class="team-progress">
+              <div class="progress-meta"><b>团队路线进度</b><span data-progress-text>3 / 6</span></div>
+              <div class="progress-track"><i data-progress-bar></i></div>
+            </div>
+            <div class="stamp-grid">
+              <div class="stamp done"><b>茨坪</b><span>已盖章</span></div>
+              <div class="stamp done"><b>三湾</b><span>已盖章</span></div>
+              <div class="stamp done"><b>大井</b><span>已盖章</span></div>
+              <div class="stamp current" data-team-stamp><b>黄洋界</b><span>等待答题</span></div>
+              <div class="stamp"><b>八角楼</b><span>未到达</span></div>
+              <div class="stamp"><b>神山村</b><span>未到达</span></div>
+            </div>
+            <button class="secondary" type="button" data-arrive data-target="quiz-team">验证全队到达并解锁</button>
+            <div class="quiz" id="quiz-team" hidden>
+              <span class="quiz-label">团队协作题　答对 +50 分</span>
+              <h4>请选择最适合小队现场完成的研学行动。</h4>
+              <div class="answers">
+                <button class="answer" type="button" data-answer>所有人分别离开景点搜索答案</button>
+                <button class="answer" type="button" data-answer data-correct data-reward="50">分工观察地形、查阅史料并共同形成讲解</button>
+                <button class="answer" type="button" data-answer>由一人答题，其他人跳过任务</button>
+              </div>
+              <div class="feedback" data-feedback>团队答对后获得黄洋界印章，并计入班级排行。</div>
+            </div>
+            <div class="ranking">
+              <div class="rank-row"><b>1</b><span>星火研学队</span><em data-team-score>260 分</em></div>
+              <div class="rank-row"><b>2</b><span>青松小队</span><em>245 分</em></div>
+              <div class="rank-row"><b>3</b><span>映山红队</span><em>210 分</em></div>
+            </div>
+          </div>
+        </div>
+        <div class="fit-note">
+          <b>更适合：班级、社团、研学营</b>
+          <span>优势：个人积分和团队目标结合，适合组织连续活动。</span>
+          <div>注意：需要防止代答，并设置队员到达率和教师管理端。</div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="footer-actions">
+      <span>建议优先方向：主界面采用方案 A，进入景点后使用方案 B；团队活动时叠加方案 C 的护照与排行。</span>
+      <button class="reset" type="button" data-reset>重置全部演示</button>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const initialState = document.documentElement.innerHTML;
+
+      function addPoints(demo, amount) {
+        const points = demo.querySelector("[data-points]");
+        points.textContent = String(Number(points.textContent) + amount);
+      }
+
+      document.addEventListener("click", event => {
+        const arrive = event.target.closest("[data-arrive]");
+        if (arrive) {
+          const demo = arrive.closest("[data-demo]");
+          const quiz = demo.querySelector(`#${arrive.dataset.target}`);
+          quiz.hidden = false;
+          arrive.textContent = "已验证到达";
+          arrive.disabled = true;
+
+          const state = demo.querySelector("[data-state]");
+          if (state) state.textContent = "已到达";
+          const location = demo.querySelector("[data-location-text]");
+          if (location) location.textContent = "定位验证成功 · 已进入任务范围";
+          quiz.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          return;
+        }
+
+        const answer = event.target.closest("[data-answer]");
+        if (answer) {
+          const quiz = answer.closest(".quiz");
+          const demo = answer.closest("[data-demo]");
+          const feedback = quiz.querySelector("[data-feedback]");
+          if (quiz.dataset.completed === "true") return;
+
+          if (answer.hasAttribute("data-correct")) {
+            const reward = Number(answer.dataset.reward || 0);
+            quiz.dataset.completed = "true";
+            answer.classList.add("correct");
+            quiz.querySelectorAll("[data-answer]").forEach(button => button.disabled = true);
+            addPoints(demo, reward);
+            feedback.className = "feedback success";
+            feedback.textContent = `回答正确，获得 ${reward} 积分。AI 已生成现场知识讲评。`;
+
+            const observation = demo.querySelector("[data-report-observation]");
+            const score = demo.querySelector("[data-report-score]");
+            const comment = demo.querySelector("[data-report-comment]");
+            if (observation) observation.textContent = "地形与防守关系";
+            if (score) score.textContent = `${reward} / ${reward}`;
+            if (comment) comment.textContent = "已写入报告";
+
+            const stamp = demo.querySelector("[data-team-stamp]");
+            if (stamp) {
+              stamp.className = "stamp done";
+              stamp.querySelector("span").textContent = "已盖章";
+              demo.querySelector("[data-progress-bar]").style.width = "66.67%";
+              demo.querySelector("[data-progress-text]").textContent = "4 / 6";
+              demo.querySelector("[data-team-score]").textContent = `${Number(demo.querySelector("[data-points]").textContent)} 分`;
+            }
+
+            const currentRow = demo.querySelector("[data-current-row]");
+            if (currentRow) {
+              currentRow.classList.remove("current");
+              currentRow.classList.add("done");
+              currentRow.querySelector(".task-index").textContent = "✓";
+              currentRow.querySelector("[data-state]").textContent = `+${reward} 分`;
+            }
+          } else {
+            answer.classList.add("wrong");
+            feedback.className = "feedback hint";
+            feedback.textContent = "AI 提示：不要只找文字答案，先观察山口视野、道路和队伍组织之间的关系，再试一次。";
+            window.setTimeout(() => answer.classList.remove("wrong"), 900);
+          }
+          return;
+        }
+
+        if (event.target.closest("[data-reset]")) {
+          window.location.reload();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

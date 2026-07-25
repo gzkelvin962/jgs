@@ -1,0 +1,28 @@
+# Local configuration and secrets
+.env
+.env.local
+outputs/.env.local
+
+# Python and Node caches
+**/__pycache__/
+*.py[cod]
+node_modules/
+
+# User uploads and generated personalized portraits
+outputs/assets/users/
+outputs/assets/stickers/custom/
+
+# QA and local browser artifacts
+work/*.png
+work/qa-users/
+work/chrome-agent-check/
+outputs/qa-sticker-sheets/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Codex workspace metadata
+.agents/
+.codex/

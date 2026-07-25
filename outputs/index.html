@@ -1,0 +1,3867 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>井冈山宣传小程序 UI 原型</title>
+  <script>
+    window.JGS_APP_CONFIG = Object.assign({ agentApiUrl: "", userApiUrl: "", stickerApiUrl: "" }, window.JGS_APP_CONFIG || {});
+    window.getJgsAgentEndpoint = () => {
+      const fixedEndpoint = String(window.JGS_APP_CONFIG.agentApiUrl || "").trim();
+      if (fixedEndpoint) return fixedEndpoint;
+      try {
+        const savedEndpoint = String(localStorage.getItem("JGS_AGENT_API") || "").trim();
+        if (savedEndpoint && !/你的|example\.com/i.test(savedEndpoint)) return savedEndpoint;
+      } catch (error) {}
+      return /^https?:$/.test(location.protocol) ? `${location.origin}/api/jinggangshan-agent` : "";
+    };
+    window.getJgsUserApiBase = () => {
+      const fixedEndpoint = String(window.JGS_APP_CONFIG.userApiUrl || "").trim().replace(/\/$/, "");
+      if (fixedEndpoint) return fixedEndpoint;
+      return /^https?:$/.test(location.protocol) ? `${location.origin}/api/jinggangshan-user` : "";
+    };
+    window.getJgsStickerEndpoint = () => {
+      const fixedEndpoint = String(window.JGS_APP_CONFIG.stickerApiUrl || "").trim();
+      if (fixedEndpoint) return fixedEndpoint;
+      if (/^https?:$/.test(location.protocol)) return `${location.origin}/api/jinggangshan-sticker/customize`;
+      return "http://127.0.0.1:8787/api/jinggangshan-sticker/customize";
+    };
+    window.getJgsStickerHealthEndpoint = () => {
+      const endpoint = window.getJgsStickerEndpoint();
+      return endpoint.replace(/\/api\/jinggangshan-sticker\/customize(?:\?.*)?$/, "/api/health");
+    };
+  </script>
+  <style>
+    :root {
+      --red: #b7281f;
+      --red-deep: #7f1712;
+      --green: #1f6a43;
+      --ink: #24211d;
+      --muted: #766f65;
+      --paper: #fbf6ea;
+      --line: rgba(36, 33, 29, .1);
+      --gold: #d29a42;
+      --white: #fffdf8;
+      --shadow: 0 22px 50px rgba(68, 38, 22, .16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(210, 154, 66, .18), transparent 28rem),
+        linear-gradient(135deg, #e8efe4 0%, #fff8ea 42%, #efe1cd 100%);
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .stage {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      background: var(--paper);
+      border: 10px solid #171310;
+      border-radius: 36px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 24px;
+    }
+
+    .status {
+      height: 34px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 22px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #171310;
+      color: #fff;
+    }
+
+    .app {
+      height: 790px;
+      overflow: auto;
+      padding-bottom: 86px;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+    }
+
+    .app::-webkit-scrollbar { display: none; }
+
+    .hero {
+      min-height: 254px;
+      background-image:
+        linear-gradient(180deg, rgba(31, 23, 18, .14), rgba(31, 23, 18, .5)),
+        url("jinggangshan-hero.png");
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .topbar, .page-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-top-spacer { width: 34px; }
+
+    .title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .menu-dot {
+      width: 38px;
+      height: 26px;
+      border: 1px solid rgba(255, 255, 255, .6);
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      letter-spacing: 2px;
+      font-weight: 900;
+      background: transparent;
+      color: #fff;
+    }
+
+    .hero-copy h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      width: 280px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, .88);
+    }
+
+    .search {
+      width: calc(100% - 36px);
+      margin: -20px 18px 18px;
+      background: var(--white);
+      border-radius: 8px;
+      min-height: 44px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 24px rgba(77, 51, 32, .16);
+      position: relative;
+      z-index: 2;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .content, .page {
+      padding: 0 18px 20px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .quick {
+      min-height: 82px;
+      background: var(--white);
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(78, 52, 32, .07);
+      color: var(--ink);
+    }
+
+    .quick span {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f4e1cf;
+      color: var(--red);
+      font-size: 18px;
+    }
+
+    .section { margin-bottom: 22px; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .section-head h2, .page-top h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .link-btn {
+      color: var(--red);
+      background: transparent;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 0;
+    }
+
+    .feature-card, .item-card, .tool-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(78, 52, 32, .08);
+    }
+
+    .ip-card {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .mascot {
+      width: 80px;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      background:
+        linear-gradient(160deg, rgba(183, 40, 31, .85), rgba(31, 106, 67, .92)),
+        radial-gradient(circle at 65% 20%, #fff 0 12px, transparent 13px);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 34px;
+      font-weight: 900;
+      position: relative;
+    }
+
+    .mascot::after {
+      content: "IP";
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, .8);
+    }
+
+    h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .tag {
+      border-radius: 999px;
+      background: #f6eadc;
+      color: var(--red-deep);
+      font-size: 11px;
+      padding: 5px 8px;
+      font-weight: 700;
+    }
+
+    .video-row, .two-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .video {
+      min-height: 142px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: linear-gradient(160deg, #263c2f, #b7281f);
+      color: #fff;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    .video small { color: rgba(255, 255, 255, .82); }
+
+    .play {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .22);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .route-list, .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .route {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: left;
+      color: var(--ink);
+    }
+
+    .route b {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #e8f0e6;
+      color: var(--green);
+      font-size: 14px;
+    }
+
+    .route h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+    }
+
+    .route em {
+      font-style: normal;
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .comic {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 10px;
+    }
+
+    .comic-panel {
+      min-height: 116px;
+      border: 1px solid #171310;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fffaf0;
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+      color: var(--ink);
+    }
+
+    .comic-panel::after {
+      content: "";
+      position: absolute;
+      inset: auto -18px -18px auto;
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      border: 14px solid rgba(183, 40, 31, .14);
+    }
+
+    .comic-panel strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .ai-box {
+      background: #203e31;
+      color: #fff;
+    }
+
+    .ai-box p { color: rgba(255, 255, 255, .78); }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .page {
+      padding-top: 18px;
+      min-height: 710px;
+    }
+
+    .back-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #f4e1cf;
+      color: var(--red);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .page-hero {
+      margin: 16px 0;
+      min-height: 132px;
+      border-radius: 8px;
+      padding: 16px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background:
+        linear-gradient(180deg, rgba(31, 23, 18, .08), rgba(31, 23, 18, .62)),
+        url("jinggangshan-hero.png") center / cover;
+    }
+
+    .page-hero h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .page-hero p { color: rgba(255, 255, 255, .86); }
+
+    .primary-action, .ghost-action {
+      min-height: 40px;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 800;
+    }
+
+    .primary-action {
+      background: var(--red);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(183, 40, 31, .2);
+    }
+
+    .ghost-action {
+      background: #f4e1cf;
+      color: var(--red-deep);
+    }
+
+    .item-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .face-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .sticker-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .sticker-tab {
+      min-height: 36px;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .sticker-tab.selected {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+    }
+
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .sticker-tile {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf0;
+      box-shadow: 0 6px 14px rgba(78, 52, 32, .06);
+    }
+
+    .sticker-tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: transform .18s ease;
+    }
+
+    .sticker-tile:active img { transform: scale(.93); }
+
+    .sticker-download-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .sticker-download-note a {
+      color: var(--red);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .personalize-card {
+      padding: 14px;
+      border: 1px solid #ead7c5;
+      border-radius: 8px;
+      background: #fff7eb;
+      display: grid;
+      gap: 10px;
+    }
+
+    .personalize-card h3 { margin: 0; }
+
+    .custom-sticker-intro {
+      padding: 15px;
+      border-left: 4px solid var(--red);
+      background: #fff7eb;
+    }
+
+    .custom-sticker-intro h2 { margin: 0 0 6px; font-size: 20px; }
+    .custom-sticker-intro p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+    .custom-sticker-panel {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      display: grid;
+      gap: 12px;
+    }
+
+    .custom-sticker-panel h3 { margin: 0; font-size: 16px; }
+
+    .custom-sticker-upload {
+      min-height: 178px;
+      padding: 14px;
+      border: 1px dashed rgba(183, 40, 31, .42);
+      border-radius: 8px;
+      background: #fffaf2;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .custom-sticker-upload strong { display: block; margin-top: 8px; }
+    .custom-sticker-upload small { display: block; margin-top: 5px; color: var(--muted); line-height: 1.5; }
+    .custom-sticker-upload-icon { font-size: 34px; color: var(--red); line-height: 1; }
+
+    .custom-sticker-portrait {
+      display: none;
+      width: 100%;
+      height: 220px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #f2eadf;
+    }
+
+    .custom-sticker-upload.has-image .custom-sticker-upload-copy { display: none; }
+    .custom-sticker-upload.has-image .custom-sticker-portrait { display: block; }
+
+    .custom-sticker-template-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .custom-sticker-template {
+      position: relative;
+      aspect-ratio: 1;
+      padding: 4px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      background: #fffaf0;
+      overflow: hidden;
+    }
+
+    .custom-sticker-template img { width: 100%; height: 100%; object-fit: contain; }
+    .custom-sticker-template.selected { border-color: var(--red); background: #fff0e3; }
+    .custom-sticker-template.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .custom-sticker-style {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .custom-sticker-style button {
+      min-height: 42px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f3eadf;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .custom-sticker-style button.selected { background: var(--green); border-color: var(--green); color: #fff; }
+
+    .custom-sticker-consent {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 9px;
+      align-items: start;
+      color: #504a42;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .custom-sticker-consent input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--green); }
+
+    .custom-sticker-audit {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #f2f0eb;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .custom-sticker-audit-dot { width: 10px; height: 10px; flex: 0 0 auto; border-radius: 50%; background: #aaa49c; }
+    .custom-sticker-reconnect {
+      margin-left: auto;
+      padding: 4px 0 4px 8px;
+      flex: 0 0 auto;
+      background: transparent;
+      color: currentColor;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .custom-sticker-audit.checking .custom-sticker-audit-dot { background: var(--gold); animation: customStickerPulse 1s infinite; }
+    .custom-sticker-audit.passed { color: var(--green); background: #eaf4ed; }
+    .custom-sticker-audit.passed .custom-sticker-audit-dot { background: var(--green); }
+    .custom-sticker-audit.blocked { color: var(--red); background: #fff0ec; }
+    .custom-sticker-audit.blocked .custom-sticker-audit-dot { background: var(--red); }
+
+    @keyframes customStickerPulse { 50% { opacity: .35; } }
+
+    .custom-sticker-generate:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+
+    .custom-sticker-result { display: none; gap: 10px; }
+    .custom-sticker-result.show { display: grid; }
+    .custom-sticker-result img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf0;
+    }
+
+    .custom-sticker-result-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .custom-sticker-privacy { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; text-align: center; }
+
+    .face {
+      min-height: 88px;
+      border-radius: 8px;
+      background: #fffaf0;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+    }
+
+    .textarea, .input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fffaf0;
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .textarea {
+      min-height: 92px;
+      resize: none;
+    }
+
+    .segment {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .segment.four {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .segment button {
+      min-height: 36px;
+      border-radius: 8px;
+      background: #f3eadf;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .segment button.selected {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .activation-card {
+      min-height: 168px;
+      border-radius: 8px;
+      padding: 14px;
+      color: #fff;
+      background:
+        linear-gradient(120deg, rgba(18, 18, 18, .86), rgba(183, 40, 31, .72)),
+        repeating-linear-gradient(90deg, #1f1f1f 0 16px, #404040 16px 32px);
+      display: grid;
+      gap: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .activation-card::after {
+      content: "";
+      position: absolute;
+      inset: 18px 18px auto auto;
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.9), rgba(255,255,255,.08) 58%, transparent 62%);
+      opacity: .55;
+    }
+
+    .activation-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .photo-box {
+      min-height: 84px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.24);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .photo-box.gray {
+      background: linear-gradient(135deg, #1c1c1c, #777);
+      filter: grayscale(1);
+    }
+
+    .photo-box.live {
+      background: linear-gradient(135deg, #225f43, #d6a34b 48%, #b7281f);
+    }
+
+    .arrow {
+      color: rgba(255,255,255,.86);
+      font-weight: 900;
+    }
+
+    .ip-app-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .ip-guide {
+      display: grid;
+      gap: 10px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(78, 52, 32, .08);
+    }
+
+    .guide-step {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 58px;
+      border-radius: 8px;
+      background: #fffaf0;
+      padding: 10px;
+      border: 1px solid rgba(36, 33, 29, .08);
+      color: var(--ink);
+      text-align: left;
+    }
+
+    .guide-step b {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f4e1cf;
+      color: var(--red);
+    }
+
+    .guide-step h3 {
+      margin: 0 0 3px;
+      font-size: 14px;
+    }
+
+    .guide-step em {
+      font-style: normal;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ip-app {
+      min-height: 108px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fffaf0;
+      padding: 12px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: var(--ink);
+    }
+
+    .ip-app b {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #f4e1cf;
+      color: var(--red);
+      font-size: 16px;
+    }
+
+    .profile-page {
+      background:
+        linear-gradient(180deg, rgba(31, 106, 67, .16) 0 32%, transparent 32%),
+        radial-gradient(circle at 18% 6%, rgba(210, 154, 66, .22), transparent 12rem),
+        var(--paper);
+      padding: 0 16px 20px;
+    }
+
+    .profile-topbar {
+      height: 62px;
+      display: grid;
+      grid-template-columns: 74px 1fr 74px;
+      align-items: center;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    .profile-topbar h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .capsule {
+      height: 38px;
+      border-radius: 999px;
+      background: rgba(255,253,248,.72);
+      border: 1px solid rgba(36, 33, 29, .1);
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(78, 52, 32, .08);
+      font-weight: 900;
+    }
+
+    .capsule span:nth-child(2) {
+      height: 18px;
+      background: rgba(17,17,17,.14);
+    }
+
+    .profile-user {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 22px 20px 24px;
+    }
+
+    .profile-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .profile-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--red);
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .profile-link {
+      background: transparent;
+      color: var(--green);
+      font-size: 14px;
+      padding-bottom: 6px;
+    }
+
+    .profile-list {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 10px 0;
+      margin-bottom: 16px;
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 30px rgba(78, 52, 32, .08);
+    }
+
+    .profile-row {
+      width: 100%;
+      min-height: 76px;
+      background: transparent;
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 0 20px;
+      text-align: left;
+      color: var(--ink);
+      font-size: 19px;
+    }
+
+    .profile-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--red);
+      background: #f4e1cf;
+      font-weight: 900;
+      box-shadow: 0 8px 16px rgba(78, 52, 32, .08);
+      border: 1px solid rgba(36, 33, 29, .08);
+    }
+
+    .profile-icon.orange { color: var(--red); background: #f4e1cf; }
+    .profile-icon.green { color: var(--green); background: #e8f0e6; }
+    .profile-icon.coral { color: var(--red-deep); background: #f6eadc; }
+    .profile-icon.yellow { color: #8a611e; background: #f7edcf; }
+    .profile-icon.mint { color: var(--green); background: #dfeee2; }
+    .profile-icon.blue { color: var(--green); background: #e6ece4; }
+
+    .profile-arrow {
+      color: var(--muted);
+      font-size: 26px;
+    }
+
+    .profile-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--red);
+      margin-right: 8px;
+      display: inline-block;
+    }
+
+    .account-page {
+      padding: 18px 16px 110px;
+      background: var(--paper);
+    }
+
+    .account-lead {
+      margin: 18px -16px 14px;
+      padding: 20px 18px;
+      background: #e7efe3;
+      border-block: 1px solid rgba(31, 106, 67, .14);
+    }
+
+    .account-lead h2,
+    .account-section h2,
+    .account-section h3 {
+      margin: 0;
+      color: var(--ink);
+    }
+
+    .account-lead p,
+    .account-section p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .account-section {
+      margin: 0 -16px 14px;
+      padding: 16px;
+      background: var(--white);
+      border-block: 1px solid var(--line);
+    }
+
+    .account-form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 7px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf0;
+      color: var(--ink);
+      padding: 10px 12px;
+      outline: 0;
+      resize: vertical;
+    }
+
+    .form-field textarea { min-height: 82px; }
+
+    .avatar-editor {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .profile-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--red), var(--green));
+      color: #fff;
+      font-size: 24px;
+      font-weight: 900;
+      border: 2px solid rgba(255, 255, 255, .76);
+      box-shadow: 0 8px 18px rgba(78, 52, 32, .16);
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .full-action { width: 100%; }
+
+    .points-balance {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .points-number {
+      color: var(--red-deep);
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .points-number small {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .level-track {
+      height: 8px;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 4px;
+      background: #eadfce;
+    }
+
+    .level-track i {
+      display: block;
+      width: 64%;
+      height: 100%;
+      background: var(--green);
+    }
+
+    .points-list,
+    .setting-list,
+    .cache-list {
+      display: grid;
+    }
+
+    .points-item,
+    .setting-row,
+    .cache-row {
+      min-height: 62px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .points-item:last-child,
+    .setting-row:last-child,
+    .cache-row:last-child { border-bottom: 0; }
+
+    .points-item b,
+    .setting-row b,
+    .cache-row b { display: block; color: var(--ink); font-size: 14px; }
+
+    .points-item span,
+    .setting-row span,
+    .cache-row span { color: var(--muted); font-size: 12px; }
+
+    .points-change { color: var(--green); font-weight: 900; }
+    .points-change.minus { color: var(--red); }
+
+    .faq-list details {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .faq-list details:last-child { border-bottom: 0; }
+    .faq-list summary { cursor: pointer; color: var(--ink); font-weight: 800; }
+
+    .share-code {
+      display: grid;
+      place-items: center;
+      min-height: 118px;
+      margin: 14px 0;
+      background: #f4e1cf;
+      border: 1px dashed rgba(183, 40, 31, .34);
+      border-radius: 8px;
+      color: var(--red-deep);
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+    }
+
+    .action-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .miniapp-guide {
+      display: grid;
+      gap: 16px;
+      counter-reset: guide;
+    }
+
+    .miniapp-guide-step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+      counter-increment: guide;
+    }
+
+    .miniapp-guide-step::before {
+      content: counter(guide);
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #f4e1cf;
+      color: var(--red);
+      font-weight: 900;
+    }
+
+    .cache-summary {
+      color: var(--red-deep);
+      font-size: 30px;
+      font-weight: 900;
+    }
+
+    .cache-check {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--green);
+    }
+
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 26px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .switch span {
+      position: absolute;
+      inset: 0;
+      border-radius: 13px;
+      background: #d7d2c9;
+      transition: .18s ease;
+    }
+
+    .switch span::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(36, 33, 29, .2);
+      transition: .18s ease;
+    }
+
+    .switch input:checked + span { background: var(--green); }
+    .switch input:checked + span::after { transform: translateX(18px); }
+
+    .text-action {
+      width: 100%;
+      min-height: 48px;
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .text-action:last-child { border-bottom: 0; }
+    .text-action.danger { color: var(--red); font-weight: 800; }
+
+    .confirm-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(23, 19, 16, .5);
+    }
+
+    .confirm-layer[hidden] { display: none; }
+
+    .confirm-box {
+      width: min(320px, 100%);
+      padding: 18px;
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+
+    .confirm-box h3 { margin: 0; }
+    .confirm-box p { color: var(--muted); line-height: 1.55; }
+
+    .map-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(78, 52, 32, .08);
+    }
+
+    .jg-map {
+      height: 246px;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 26% 34%, rgba(210,154,66,.25), transparent 4.5rem),
+        radial-gradient(circle at 72% 64%, rgba(183,40,31,.16), transparent 5rem),
+        linear-gradient(135deg, #dfead5 0%, #a9c28f 45%, #6d9a68 100%);
+      border: 1px solid rgba(36, 33, 29, .12);
+    }
+
+    .jg-map::before {
+      content: "";
+      position: absolute;
+      inset: 22px 18px;
+      background:
+        linear-gradient(140deg, transparent 0 18%, rgba(31,106,67,.24) 18% 22%, transparent 22% 42%, rgba(31,106,67,.22) 42% 46%, transparent 46%),
+        repeating-linear-gradient(28deg, rgba(255,255,255,.16) 0 3px, transparent 3px 18px);
+      clip-path: polygon(18% 6%, 52% 2%, 78% 17%, 90% 43%, 79% 75%, 50% 95%, 20% 82%, 8% 48%);
+      border: 2px solid rgba(31,106,67,.38);
+      border-radius: 40% 45% 48% 42%;
+    }
+
+    .map-road {
+      position: absolute;
+      left: 54px;
+      top: 62px;
+      width: 235px;
+      height: 126px;
+      border: 4px solid rgba(183,40,31,.72);
+      border-left: 0;
+      border-bottom: 0;
+      border-radius: 0 90px 0 0;
+      transform: rotate(7deg);
+    }
+
+    .map-river {
+      position: absolute;
+      left: 40px;
+      bottom: 48px;
+      width: 280px;
+      height: 46px;
+      border-bottom: 8px solid rgba(86,135,153,.45);
+      border-radius: 50%;
+      transform: rotate(-10deg);
+    }
+
+    .map-pin {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50% 50% 50% 4px;
+      background: var(--red);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      transform: rotate(-45deg);
+      box-shadow: 0 8px 18px rgba(183, 40, 31, .28);
+      z-index: 2;
+    }
+
+    .map-pin span {
+      transform: rotate(45deg);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .map-pin.active {
+      background: var(--green);
+    }
+
+    .map-label {
+      position: absolute;
+      z-index: 3;
+      background: rgba(255,253,248,.9);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--ink);
+      box-shadow: 0 6px 12px rgba(78, 52, 32, .1);
+    }
+
+    .map-tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .nav-summary {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: #fffaf0;
+      border: 1px solid var(--line);
+    }
+
+    .route-personalize {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .route-location {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .route-location .input { min-width: 0; }
+
+    .route-plan-result {
+      display: none;
+      white-space: pre-line;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f4f8f0;
+      border: 1px solid rgba(31, 106, 67, .2);
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .route-plan-result.show { display: block; }
+
+    .discovery-stack { gap: 12px; }
+
+    .keyword-cloud {
+      height: 440px;
+      position: relative;
+      overflow: hidden;
+      background: #fffaf0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .keyword-cloud::before {
+      content: "";
+      position: absolute;
+      inset: 8px 10px;
+      background: #d6af78;
+      clip-path: polygon(37% 4%, 53% 1%, 69% 4%, 74% 10%, 85% 15%, 91% 22%, 86% 27%, 71% 28%, 67% 34%, 70% 39%, 85% 43%, 94% 50%, 90% 58%, 80% 55%, 69% 50%, 64% 54%, 65% 67%, 71% 76%, 69% 87%, 74% 96%, 61% 96%, 55% 86%, 50% 75%, 46% 86%, 40% 96%, 26% 96%, 31% 87%, 29% 76%, 35% 67%, 36% 54%, 30% 50%, 19% 58%, 8% 55%, 5% 49%, 14% 42%, 30% 38%, 34% 33%, 31% 27%, 18% 26%, 11% 21%, 16% 13%, 30% 10%);
+      filter: drop-shadow(2px 3px 0 #65432d);
+      opacity: .82;
+    }
+
+    .keyword-cloud::after {
+      content: "★";
+      position: absolute;
+      left: 50%;
+      top: 13%;
+      transform: translate(-50%, -50%);
+      color: var(--red);
+      font-size: 28px;
+      line-height: 1;
+      z-index: 1;
+    }
+
+    .cloud-word {
+      position: absolute;
+      left: var(--cloud-x);
+      top: var(--cloud-y);
+      transform: translate(-50%, -50%) rotate(var(--cloud-rotate));
+      padding: 2px;
+      background: transparent;
+      color: #722c24;
+      font-weight: 800;
+      line-height: 1.12;
+      white-space: nowrap;
+      transition: color .16s ease, transform .16s ease;
+      z-index: 2;
+    }
+
+    .cloud-word:active { transform: translate(-50%, -50%) rotate(var(--cloud-rotate)) scale(.94); }
+    .cloud-word:hover { color: var(--red); }
+    .cloud-word.size-xl { font-size: 23px; color: #8f241f; }
+    .cloud-word.size-lg { font-size: 19px; color: #8f241f; }
+    .cloud-word.size-md { font-size: 16px; color: #722c24; }
+    .cloud-word.size-sm { font-size: 13px; color: #824433; }
+    .cloud-word.tone-red { color: var(--red); }
+    .cloud-word.tone-ink { color: #512e25; }
+
+    .discovery-result {
+      display: grid;
+      gap: 7px;
+      padding: 14px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 18px rgba(78, 52, 32, .06);
+    }
+
+    .discovery-result h3 { margin: 0; }
+    .discovery-result .source-link {
+      justify-self: start;
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .agent-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(78, 52, 32, .08);
+      display: grid;
+      gap: 12px;
+    }
+
+    .agent-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--red), var(--green));
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(78, 52, 32, .18);
+    }
+
+    .chat-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .chat-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .bubble {
+      max-width: 250px;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fffaf0;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .chat-row.user {
+      justify-content: flex-end;
+    }
+
+    .chat-row.user .bubble {
+      background: var(--green);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .prompt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .prompt-chip {
+      min-height: 44px;
+      border-radius: 8px;
+      background: #f6eadc;
+      color: var(--red-deep);
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .chat-input {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .chat-input input {
+      border: 0;
+      outline: 0;
+      background: transparent;
+      min-width: 0;
+      color: var(--ink);
+    }
+
+    .agent-settings {
+      display: none;
+      gap: 8px;
+      background: #fffaf0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .agent-settings.show {
+      display: grid;
+    }
+
+    .agent-settings label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .agent-settings input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--ink);
+      outline: 0;
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .settings-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 92px;
+      transform: translateX(-50%) translateY(12px);
+      max-width: 300px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(23, 19, 16, .88);
+      color: #fff;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .22s ease;
+      z-index: 8;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 72px;
+      background: rgba(255, 253, 248, .96);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 10px 10px;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-item {
+      display: grid;
+      place-items: center;
+      gap: 3px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .nav-item i {
+      font-style: normal;
+      font-size: 19px;
+    }
+
+    .nav-item.active { color: var(--red); }
+
+    .notes {
+      background: rgba(255, 253, 248, .74);
+      border: 1px solid rgba(36, 33, 29, .12);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .notes h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+    }
+
+    .notes p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .module-map {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .module {
+      min-height: 126px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .module h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border-radius: 8px;
+      background: var(--red);
+      color: #fff;
+      padding: 0 18px;
+      text-decoration: none;
+      font-weight: 800;
+      margin-top: 18px;
+      box-shadow: 0 10px 22px rgba(183, 40, 31, .22);
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 18px;
+        place-items: start center;
+      }
+
+      .stage { grid-template-columns: 1fr; }
+
+      .phone {
+        width: min(390px, 100%);
+        position: relative;
+        top: 0;
+        margin: 0 auto;
+      }
+
+      .notes { order: -1; }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 0;
+        background: var(--paper);
+      }
+
+      .notes { display: none; }
+
+      .phone {
+        width: 100%;
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .app { height: calc(100vh - 34px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="phone" aria-label="井冈山宣传小程序手机预览">
+      <div class="status">
+        <span>9:41</span>
+        <span>5G 100%</span>
+      </div>
+
+      <div class="app" id="app">
+        <section class="screen active" data-screen="home">
+          <header class="hero">
+            <div class="topbar">
+              <div class="title">井冈山云游</div>
+              <button class="menu-dot" data-action="toast" data-message="这里可以放分享、客服、设置">•••</button>
+            </div>
+            <div class="hero-copy">
+              <h1>走进<br>井冈山</h1>
+              <p>红色故事、绿色山水、研学路线和青年创作，在这里一屏打开。</p>
+            </div>
+          </header>
+
+          <button class="search" data-go="discover">⌕ 搜索景点、故事、路线、表情包</button>
+
+          <div class="content">
+            <nav class="quick-grid" aria-label="快捷入口">
+              <button class="quick" data-go="ip"><span>☺</span>IP</button>
+              <button class="quick" data-go="video"><span>▶</span>短视频</button>
+              <button class="quick" data-go="routes"><span>⌖</span>路线</button>
+            </nav>
+
+            <section class="section">
+              <div class="section-head">
+                <h2>红色 IP 指引路线</h2>
+                <button class="link-btn" data-go="ip">进入</button>
+              </div>
+              <div class="ip-guide">
+                <button class="guide-step" data-go="ip">
+                  <b>1</b>
+                  <div>
+                    <h3>建立角色 IP</h3>
+                    <p>小井小冈形象、表情包、宣发文案</p>
+                  </div>
+                  <em>基础</em>
+                </button>
+                <button class="guide-step" data-go="ip">
+                  <b>2</b>
+                  <div>
+                    <h3>选择应用方式</h3>
+                    <p>漫画互动、打卡贴纸、短视频贴片</p>
+                  </div>
+                  <em>应用</em>
+                </button>
+                <button class="guide-step" data-go="routes">
+                  <b>3</b>
+                  <div>
+                    <h3>接入路线传播</h3>
+                    <p>把 IP 素材放进研学路线和打卡任务</p>
+                  </div>
+                  <em>发布</em>
+                </button>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head">
+                <h2>短视频创作</h2>
+                <button class="link-btn" data-go="video">发布</button>
+              </div>
+              <div class="video-row">
+                <button class="video" data-go="video">
+                  <div class="play">▶</div>
+                  <strong>Vlog 模板</strong>
+                  <small>拍摄脚本 + AI 成片建议</small>
+                </button>
+                <button class="video" data-go="video">
+                  <div class="play">AI</div>
+                  <strong>AI活化</strong>
+                  <small>黑白照片生成彩色实况</small>
+                </button>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head">
+                <h2>调研路线选择</h2>
+                <button class="link-btn" data-go="routes">规划</button>
+              </div>
+              <div class="route-list">
+                <button class="route" data-go="routes">
+                  <b>01</b>
+                  <div>
+                    <h3>神山村研学线</h3>
+                    <p>乡村振兴、非遗体验、访谈任务</p>
+                  </div>
+                  <em>推荐</em>
+                </button>
+                <button class="route" data-go="routes">
+                  <b>02</b>
+                  <div>
+                    <h3>三湾改编主题线</h3>
+                    <p>历史现场、互动问答、团队打卡</p>
+                  </div>
+                  <em>2h</em>
+                </button>
+              </div>
+            </section>
+
+          </div>
+        </section>
+
+        <section class="screen page" data-screen="ip">
+          <div class="page-top">
+            <button class="back-btn" data-go="home">‹</button>
+            <h1>IP 表情包</h1>
+            <button class="link-btn" data-action="toast" data-message="已加入下载队列">下载</button>
+          </div>
+          <div class="page-hero">
+            <h2>小井小冈角色库</h2>
+            <p>选择表情主题，生成适合社交传播的井冈山宣传素材。</p>
+          </div>
+          <div class="stack">
+            <div class="item-card">
+              <div class="item-row">
+                <div>
+                  <h3>表情预览</h3>
+                  <p>正式款、活泼款、研学打卡款</p>
+                </div>
+                <button class="primary-action" data-action="toast" data-message="已模拟生成 6 张表情">生成</button>
+              </div>
+              <div class="face-grid">
+                <div class="face">☺</div>
+                <div class="face">✦</div>
+                <div class="face">井</div>
+                <div class="face">✓</div>
+                <div class="face">♡</div>
+                <div class="face">旗</div>
+              </div>
+            </div>
+            <div class="item-card">
+              <h3>宣发文案</h3>
+              <textarea class="textarea">今天在井冈山，把红色故事带进朋友圈。</textarea>
+              <button class="ghost-action" data-action="toast" data-message="文案已复制">复制文案</button>
+            </div>
+            <div class="item-card">
+              <div class="item-row">
+                <div>
+                  <h3>IP 应用方式</h3>
+                  <p>把“小井小冈”用于表情包、漫画问答、打卡贴纸和短视频贴片。</p>
+                </div>
+              </div>
+              <div class="ip-app-grid">
+                <button class="ip-app" data-action="toast" data-message="已进入：表情包导出">
+                  <b>☺</b>
+                  <span>表情包导出</span>
+                </button>
+                <button class="ip-app" data-go="comic">
+                  <b>▣</b>
+                  <span>漫画互动</span>
+                </button>
+                <button class="ip-app" data-action="toast" data-message="已生成：打卡贴纸">
+                  <b>⌖</b>
+                  <span>打卡贴纸</span>
+                </button>
+                <button class="ip-app" data-go="video">
+                  <b>▶</b>
+                  <span>短视频贴片</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen page" data-screen="sticker-custom">
+          <div class="page-top">
+            <button class="back-btn" data-go="ip" aria-label="返回 IP 表情包">‹</button>
+            <h1>个性化红军面相</h1>
+            <button class="link-btn" type="button" data-custom-sticker-reset>重置</button>
+          </div>
+          <div class="stack">
+            <div class="custom-sticker-intro">
+              <h2>生成你的红军主题表情</h2>
+              <p>保留发型、脸型与五官特征，将人像自然卡通化，并套用“小红军官方表情”的动作、服装和文字。</p>
+            </div>
+
+            <section class="custom-sticker-panel">
+              <h3>1. 上传正面人像</h3>
+              <label class="custom-sticker-upload" id="customStickerUpload">
+                <input id="customStickerFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                <span class="custom-sticker-upload-copy">
+                  <span class="custom-sticker-upload-icon">＋</span>
+                  <strong>选择照片</strong>
+                  <small>建议单人、正面、光线清晰<br>JPG / PNG / WEBP，最大 10MB</small>
+                </span>
+                <img class="custom-sticker-portrait" id="customStickerPortrait" alt="待定制人像预览">
+              </label>
+            </section>
+
+            <section class="custom-sticker-panel">
+              <h3>2. 选择官方表情模板</h3>
+              <div class="custom-sticker-template-grid" id="customStickerTemplates" aria-label="红军表情模板"></div>
+            </section>
+
+            <section class="custom-sticker-panel">
+              <h3>3. 调整卡通化程度</h3>
+              <div class="custom-sticker-style" id="customStickerStyle">
+                <button type="button" data-custom-style="natural">特征优先</button>
+                <button class="selected" type="button" data-custom-style="balanced">自然卡通</button>
+                <button type="button" data-custom-style="lively">活泼夸张</button>
+              </div>
+              <label class="custom-sticker-consent">
+                <input id="customStickerConsent" type="checkbox">
+                <span>我确认上传的是本人或已获得当事人明确授权的人像；未成年人已取得监护人同意，且不会冒用公众人物或他人身份。</span>
+              </label>
+              <div class="custom-sticker-audit" id="customStickerAudit" role="status" aria-live="polite">
+                <span class="custom-sticker-audit-dot"></span>
+                <span id="customStickerAuditText">正在连接 OpenAI 图片服务</span>
+                <button class="custom-sticker-reconnect" id="customStickerReconnect" type="button">重连</button>
+              </div>
+              <button class="primary-action full-action custom-sticker-generate" id="customStickerGenerate" type="button" disabled>审核并生成</button>
+              <p class="custom-sticker-privacy">人像仅发送给生成服务完成当前请求，服务端默认不保存原图或生成结果。</p>
+            </section>
+
+            <section class="custom-sticker-panel custom-sticker-result" id="customStickerResult">
+              <h3>生成结果</h3>
+              <img id="customStickerResultImage" alt="个性化红军表情生成结果">
+              <p class="custom-sticker-result-note" id="customStickerResultNote"></p>
+              <a class="primary-action full-action" id="customStickerDownload" download="jinggangshan-custom-sticker.png">下载表情</a>
+            </section>
+          </div>
+        </section>
+
+        <section class="screen page" data-screen="video">
+          <div class="page-top">
+            <button class="back-btn" data-go="home">‹</button>
+            <h1>短视频创作</h1>
+            <button class="link-btn" data-action="toast" data-message="草稿已保存">保存</button>
+          </div>
+          <div class="page-hero">
+            <h2>Vlog 拍摄助手</h2>
+            <p>从拍摄脚本、分镜、旁白到 AI 活化，先完成一个可演示流程。</p>
+          </div>
+          <div class="stack">
+            <div class="tool-card">
+              <h3>选择成片类型</h3>
+              <div class="segment four" data-segment>
+                <button class="selected">研学 Vlog</button>
+                <button>景点介绍</button>
+                <button>AI活化</button>
+                <button>口播讲解</button>
+              </div>
+            </div>
+            <div class="activation-card">
+              <div>
+                <h3>AI活化老照片</h3>
+                <p style="color: rgba(255,255,255,.82);">上传黑白历史照片，自动上色并生成 3-4 秒“实况”短片。</p>
+              </div>
+              <div class="activation-flow">
+                <div class="photo-box gray">黑白照片</div>
+                <div class="arrow">→</div>
+                <div class="photo-box live">彩色实况 4s</div>
+              </div>
+              <button class="primary-action" data-action="toast" data-message="已模拟生成 4 秒 AI 活化实况">开始活化</button>
+            </div>
+            <div class="tool-card">
+              <h3>脚本关键词</h3>
+              <input class="input" value="神山村、三湾、红色故事、青年视角">
+            </div>
+            <div class="item-card">
+              <div class="item-row">
+                <div>
+                  <h3>推荐分镜</h3>
+                  <p>远景山色 → 旧址细节 → 访谈片段 → 青年总结</p>
+                </div>
+                <button class="primary-action" data-action="toast" data-message="已模拟生成视频脚本">生成脚本</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen page" data-screen="comic">
+          <div class="page-top">
+            <button class="back-btn" data-go="home">‹</button>
+            <h1>漫画互动</h1>
+            <button class="link-btn" data-action="toast" data-message="互动剧情已分享">分享</button>
+          </div>
+          <div class="page-hero">
+            <h2>故事分格生成</h2>
+            <p>把红旗、号角、竹筒饭等符号转成可互动的漫画剧情。</p>
+          </div>
+          <div class="stack">
+            <div class="comic">
+              <button class="comic-panel" data-action="toast" data-message="已选择：红旗">
+                <strong>第一格：红旗</strong>
+                <p>选择一个符号作为故事开场。</p>
+              </button>
+              <button class="comic-panel ai-box" data-action="toast" data-message="AI 正在生成下一格">
+                <strong>第二格：AI 追问</strong>
+                <p>你希望主角遇到谁？</p>
+              </button>
+            </div>
+            <div class="item-card">
+              <h3>互动问题</h3>
+              <p>如果你是研学小队队长，会选择先采访村民，还是先参观旧址？</p>
+              <div class="two-grid">
+                <button class="ghost-action" data-action="toast" data-message="已选择：采访村民">采访村民</button>
+                <button class="primary-action" data-action="toast" data-message="已选择：参观旧址">参观旧址</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen page" data-screen="routes">
+          <div class="page-top">
+            <button class="back-btn" data-go="home">‹</button>
+            <h1>调研路线</h1>
+            <button class="link-btn" data-action="toast" data-message="路线已同步到行程">同步</button>
+          </div>
+          <div class="page-hero">
+            <h2>井冈山全局导航</h2>
+            <p>在地图上查看调研点、规划顺序，并模拟导航到下一个任务点。</p>
+          </div>
+          <div class="tool-card route-personalize" id="routePersonalize">
+            <div>
+              <h3>智能个性化路线</h3>
+              <p id="routeLocationStatus">可使用本次位置规划；位置仅用于当前路线请求，不会写入知识库。</p>
+            </div>
+            <div class="route-location">
+              <input class="input" id="routeStart" value="茨坪游客中心" aria-label="出发地">
+              <button class="ghost-action" id="routeLocate" type="button">使用当前位置</button>
+            </div>
+            <div class="segment" id="routeDuration" aria-label="游览时长">
+              <button class="selected" type="button" data-route-duration="半日">半日</button>
+              <button type="button" data-route-duration="一日">一日</button>
+              <button type="button" data-route-duration="两日">两日</button>
+            </div>
+            <div class="segment" id="routeInterest" aria-label="路线主题">
+              <button class="selected" type="button" data-route-interest="红色历史">红色历史</button>
+              <button type="button" data-route-interest="山地风景">山地风景</button>
+              <button type="button" data-route-interest="乡村研学">乡村研学</button>
+            </div>
+            <button class="primary-action" id="routePlan" type="button">智能规划路线</button>
+            <div class="route-plan-result" id="routePlanResult" aria-live="polite"></div>
+          </div>
+          <div class="map-card">
+            <div class="jg-map" aria-label="井冈山全局地图示意">
+              <div class="map-river"></div>
+              <div class="map-road"></div>
+              <button class="map-pin active" style="left: 62px; top: 54px;" data-action="toast" data-message="当前位置：茨坪游客中心"><span>起</span></button>
+              <button class="map-pin" style="left: 158px; top: 92px;" data-action="toast" data-message="已选择：三湾改编纪念地"><span>1</span></button>
+              <button class="map-pin" style="left: 235px; top: 132px;" data-action="toast" data-message="已选择：神山村"><span>2</span></button>
+              <button class="map-pin" style="left: 106px; top: 162px;" data-action="toast" data-message="已选择：黄洋界"><span>3</span></button>
+              <span class="map-label" style="left: 36px; top: 96px;">茨坪</span>
+              <span class="map-label" style="left: 146px; top: 134px;">三湾</span>
+              <span class="map-label" style="left: 230px; top: 176px;">神山村</span>
+              <span class="map-label" style="left: 82px; top: 204px;">黄洋界</span>
+            </div>
+            <div class="map-tools">
+              <button class="primary-action" data-action="toast" data-message="开始导航：茨坪 → 三湾 → 神山村">开始导航</button>
+              <button class="ghost-action" data-action="toast" data-message="已切换为全局地图视图">全局视图</button>
+            </div>
+          </div>
+          <div class="nav-summary">
+            <div>
+              <h3>推荐调研线</h3>
+              <p>茨坪游客中心 → 三湾改编纪念地 → 神山村 → 黄洋界</p>
+            </div>
+            <button class="link-btn" data-action="toast" data-message="已重新规划路线">重排</button>
+          </div>
+          <div class="route-list">
+            <button class="route" data-action="toast" data-message="导航到：三湾改编纪念地">
+              <b>01</b>
+              <div>
+                <h3>三湾改编纪念地</h3>
+                <p>约 42 分钟 · 历史现场、互动问答</p>
+              </div>
+              <em>导航</em>
+            </button>
+            <button class="route" data-action="toast" data-message="导航到：神山村">
+              <b>02</b>
+              <div>
+                <h3>神山村</h3>
+                <p>约 35 分钟 · 乡村振兴、人物访谈</p>
+              </div>
+              <em>导航</em>
+            </button>
+            <button class="route" data-action="toast" data-message="导航到：黄洋界">
+              <b>03</b>
+              <div>
+                <h3>黄洋界</h3>
+                <p>约 28 分钟 · 山地视野、讲解素材</p>
+              </div>
+              <em>导航</em>
+            </button>
+          </div>
+        </section>
+
+        <section class="screen page" data-screen="discover">
+          <div class="page-top">
+            <button class="back-btn" data-go="home">‹</button>
+            <h1>发现</h1>
+            <button class="link-btn" data-action="toast" data-message="筛选器已打开">筛选</button>
+          </div>
+          <div class="page-hero">
+            <h2>内容发现</h2>
+            <p>搜索景点、红色故事、研学任务和创作素材。</p>
+          </div>
+          <div class="stack discovery-stack">
+            <input class="input" id="discoverSearch" type="search" value="三湾改编" placeholder="搜索井冈山关键词，按 Enter 查看">
+            <section class="keyword-cloud" id="knowledgeWordCloud" aria-label="红军人物轮廓的井冈山知识关键词词云"></section>
+            <section class="discovery-result" id="discoveryResult" aria-live="polite"></section>
+          </div>
+        </section>
+
+        <section class="screen page" data-screen="agent">
+          <div class="page-top">
+            <button class="back-btn" data-go="home">‹</button>
+            <h1>井冈山智能体</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="page-hero">
+            <h2>问我关于井冈山的问题</h2>
+            <p>了解红色历史、重要人物、景点故事与研学路线。</p>
+          </div>
+          <div class="agent-card">
+            <div class="chat-list" id="agentChat">
+              <div class="chat-row">
+                <div class="agent-avatar">井</div>
+                <div class="bubble">你好，我是井冈山智能体。你可以问我景点路线、红色故事、研学打卡、短视频素材等问题。</div>
+              </div>
+              <div class="chat-row user">
+                <div class="bubble">神山村适合做什么调研？</div>
+              </div>
+              <div class="chat-row">
+                <div class="agent-avatar">AI</div>
+                <div class="bubble">可以围绕乡村振兴、非遗体验、人物访谈三个方向设计任务，并把采访素材同步到短视频和 IP 宣发模块。</div>
+              </div>
+            </div>
+            <div class="prompt-grid">
+              <button class="prompt-chip" data-agent-question="帮我规划半日路线">帮我规划半日路线</button>
+              <button class="prompt-chip" data-agent-question="三湾改编怎么讲给同学听">三湾改编怎么讲</button>
+              <button class="prompt-chip" data-agent-question="推荐一个研学采访提纲">研学采访提纲</button>
+              <button class="prompt-chip" data-agent-question="生成短视频旁白">短视频旁白</button>
+            </div>
+            <div class="chat-input">
+              <input id="agentInput" value="" placeholder="输入关于井冈山的问题">
+              <button class="primary-action" id="agentSend" type="button">发送</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen page profile-page" data-screen="profile">
+          <div class="profile-topbar">
+            <span></span>
+            <h1>个人中心</h1>
+            <div class="capsule">
+              <span>•••</span>
+              <span></span>
+              <span>○</span>
+            </div>
+          </div>
+          <div class="profile-user">
+            <div class="profile-name">
+              <span id="profileDisplayName">研学同学</span>
+              <span class="profile-badge">↔</span>
+            </div>
+            <button class="profile-link" data-go="profile-info">个人信息 ›</button>
+          </div>
+          <div class="profile-list">
+            <button class="profile-row" data-go="profile-points">
+              <span class="profile-icon orange">分</span>
+              <span>我的积分</span>
+              <span><i class="profile-dot"></i><span class="profile-arrow">›</span></span>
+            </button>
+            <button class="profile-row" data-go="profile-help">
+              <span class="profile-icon green">服</span>
+              <span>帮助与客服</span>
+              <span class="profile-arrow">›</span>
+            </button>
+            <button class="profile-row" data-go="profile-referral">
+              <span class="profile-icon coral">荐</span>
+              <span>推荐给其他同学</span>
+              <span class="profile-arrow">›</span>
+            </button>
+            <button class="profile-row" data-go="profile-add">
+              <span class="profile-icon yellow">加</span>
+              <span>添加到我的小程序</span>
+              <span class="profile-arrow">›</span>
+            </button>
+            <button class="profile-row" data-go="profile-cache">
+              <span class="profile-icon mint">清</span>
+              <span>清除缓存<small id="profileCacheSummary"></small></span>
+              <span class="profile-arrow">›</span>
+            </button>
+          </div>
+          <div class="profile-list">
+            <button class="profile-row" data-go="profile-settings">
+              <span class="profile-icon blue">设</span>
+              <span>设置</span>
+              <span class="profile-arrow">›</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="screen page account-page" data-screen="profile-info">
+          <div class="page-top">
+            <button class="back-btn" data-go="profile">‹</button>
+            <h1>个人信息</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="account-lead">
+            <h2>完善个人资料</h2>
+            <p>资料保存在当前设备；连接用户中心后会自动同步。</p>
+          </div>
+          <section class="account-section">
+            <div class="avatar-editor">
+              <button class="profile-avatar" id="profileAvatarButton" type="button" aria-label="更换头像">研</button>
+              <div>
+                <h3>个人头像</h3>
+                <p>点击头像可从本机选择图片</p>
+              </div>
+              <input id="profileAvatarInput" type="file" accept="image/*" hidden>
+            </div>
+            <form class="account-form" id="profileForm">
+              <label class="form-field">昵称<input id="profileNickname" maxlength="16" value="研学同学" required></label>
+              <label class="form-field">姓名<input id="profileRealName" maxlength="16" placeholder="用于研学活动签到"></label>
+              <label class="form-field">学校或团队<input id="profileOrganization" maxlength="30" placeholder="例如：井冈山研学一队"></label>
+              <label class="form-field">身份<select id="profileRole"><option>学生</option><option>教师</option><option>讲解员</option><option>游客</option><option>其他</option></select></label>
+              <label class="form-field">手机号<input id="profilePhone" type="tel" inputmode="numeric" maxlength="11" placeholder="用于接收行程通知"></label>
+              <label class="form-field">个人简介<textarea id="profileBio" maxlength="120" placeholder="介绍你的研学方向或兴趣"></textarea></label>
+              <button class="primary-action full-action" type="submit">保存修改</button>
+            </form>
+          </section>
+        </section>
+
+        <section class="screen page account-page" data-screen="profile-points">
+          <div class="page-top">
+            <button class="back-btn" data-go="profile">‹</button>
+            <h1>我的积分</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="account-lead">
+            <div class="points-balance">
+              <div><p>当前积分</p><div class="points-number"><span id="pointsBalance">1280</span> <small>分</small></div></div>
+              <button class="primary-action" id="pointsCheckin" type="button">今日签到</button>
+            </div>
+            <div class="level-track" aria-label="红星三级进度"><i></i></div>
+            <p>红星三级 · 距离下一等级还差 720 分</p>
+          </div>
+          <section class="account-section">
+            <h2>积分明细</h2>
+            <div class="points-list" id="pointsHistory"></div>
+          </section>
+          <section class="account-section">
+            <h2>积分规则</h2>
+            <p>完成研学打卡、发布优质作品、参与知识问答和邀请同伴均可获得积分。异常刷分记录会被撤销。</p>
+          </section>
+        </section>
+
+        <section class="screen page account-page" data-screen="profile-help">
+          <div class="page-top">
+            <button class="back-btn" data-go="profile">‹</button>
+            <h1>帮助与客服</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="account-lead">
+            <h2>遇到什么问题？</h2>
+            <p>常见问题可直接查看，也可以转到井冈山智能体继续咨询。</p>
+          </div>
+          <section class="account-section faq-list">
+            <details open><summary>如何规划个性化研学路线？</summary><p>进入“路线”，选择时长和主题，可授权当前位置或手动填写出发地后生成建议。</p></details>
+            <details><summary>表情包下载后在哪里？</summary><p>浏览器会保存到默认下载目录；在微信小程序环境中可保存到相册或转发给好友。</p></details>
+            <details><summary>AI 活化内容可以当作史料吗？</summary><p>不可以。AI 活化只用于创意展示，应明确标注，并以档案、博物馆和权威出版物为准。</p></details>
+            <details><summary>定位信息会长期保存吗？</summary><p>路线定位仅用于本次规划请求，默认不会写入用户资料或知识库。</p></details>
+          </section>
+          <section class="account-section">
+            <div class="action-pair">
+              <button class="primary-action" data-profile-action="ask-support" type="button">询问智能体</button>
+              <button class="ghost-action" data-profile-action="copy-support" type="button">复制客服号</button>
+            </div>
+          </section>
+        </section>
+
+        <section class="screen page account-page" data-screen="profile-referral">
+          <div class="page-top">
+            <button class="back-btn" data-go="profile">‹</button>
+            <h1>推荐给同学</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="account-lead">
+            <h2>一起开启井冈山研学</h2>
+            <p>好友通过你的推荐码加入后，双方可获得研学积分。</p>
+          </div>
+          <section class="account-section">
+            <h3>我的推荐码</h3>
+            <div class="share-code" id="referralCode">JGS-1927</div>
+            <div class="action-pair">
+              <button class="ghost-action" data-profile-action="copy-referral" type="button">复制邀请文案</button>
+              <button class="primary-action" data-profile-action="share-referral" type="button">立即分享</button>
+            </div>
+          </section>
+          <section class="account-section">
+            <h3>邀请进度</h3>
+            <p><b id="referralCount">3</b> 位同学已加入 · 累计获得 150 积分</p>
+          </section>
+        </section>
+
+        <section class="screen page account-page" data-screen="profile-add">
+          <div class="page-top">
+            <button class="back-btn" data-go="profile">‹</button>
+            <h1>添加到我的小程序</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="account-lead">
+            <h2>下次更快找到井冈山</h2>
+            <p>在微信正式版中，可通过右上角菜单完成添加。</p>
+          </div>
+          <section class="account-section miniapp-guide">
+            <div class="miniapp-guide-step"><div><h3>打开右上角菜单</h3><p>点击小程序右上角的“···”。</p></div></div>
+            <div class="miniapp-guide-step"><div><h3>选择添加入口</h3><p>点击“添加到我的小程序”。</p></div></div>
+            <div class="miniapp-guide-step"><div><h3>在微信首页访问</h3><p>下拉微信首页，即可从最近使用中快速进入。</p></div></div>
+          </section>
+          <button class="primary-action full-action" id="markMiniappAdded" type="button">标记为已添加</button>
+        </section>
+
+        <section class="screen page account-page" data-screen="profile-cache">
+          <div class="page-top">
+            <button class="back-btn" data-go="profile">‹</button>
+            <h1>缓存管理</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="account-lead">
+            <p>当前应用缓存</p>
+            <div class="cache-summary" id="cacheUsage">计算中…</div>
+            <p>清理不会删除个人资料、积分与设置。</p>
+          </div>
+          <section class="account-section cache-list">
+            <label class="cache-row"><span><b>图片与表情预览</b><span id="cacheImagesSize">8.6 MB</span></span><input class="cache-check" type="checkbox" data-cache-key="images" checked></label>
+            <label class="cache-row"><span><b>知识库临时数据</b><span id="cacheKnowledgeSize">420 KB</span></span><input class="cache-check" type="checkbox" data-cache-key="knowledge" checked></label>
+            <label class="cache-row"><span><b>路线与地图数据</b><span id="cacheRoutesSize">180 KB</span></span><input class="cache-check" type="checkbox" data-cache-key="routes" checked></label>
+            <label class="cache-row"><span><b>创作草稿</b><span id="cacheDraftsSize">96 KB</span></span><input class="cache-check" type="checkbox" data-cache-key="drafts"></label>
+          </section>
+          <button class="primary-action full-action" id="clearSelectedCache" type="button">清理所选缓存</button>
+        </section>
+
+        <section class="screen page account-page" data-screen="profile-settings">
+          <div class="page-top">
+            <button class="back-btn" data-go="profile">‹</button>
+            <h1>设置</h1>
+            <span class="page-top-spacer" aria-hidden="true"></span>
+          </div>
+          <div class="account-lead">
+            <h2>使用偏好</h2>
+            <p>设置保存在当前设备，登录用户中心后可同步。</p>
+          </div>
+          <section class="account-section setting-list">
+            <label class="setting-row"><span><b>研学任务提醒</b><span>接收路线和打卡提醒</span></span><span class="switch"><input type="checkbox" data-setting="notifications" checked><span></span></span></label>
+            <label class="setting-row"><span><b>路线定位</b><span>规划时允许请求当前位置</span></span><span class="switch"><input type="checkbox" data-setting="location" checked><span></span></span></label>
+            <label class="setting-row"><span><b>视频自动播放</b><span>仅在当前页面播放预览</span></span><span class="switch"><input type="checkbox" data-setting="autoplay"><span></span></span></label>
+            <label class="setting-row"><span><b>改进使用体验</b><span>发送匿名功能使用统计</span></span><span class="switch"><input type="checkbox" data-setting="analytics"><span></span></span></label>
+          </section>
+          <section class="account-section">
+            <button class="text-action" data-profile-action="privacy" type="button">隐私与数据说明 ›</button>
+            <button class="text-action" data-profile-action="about" type="button">关于井冈山宣传小程序 ›</button>
+            <button class="text-action danger" data-profile-action="reset-profile" type="button">重置个人数据</button>
+          </section>
+        </section>
+      </div>
+
+      <div class="confirm-layer" id="profileConfirmLayer" hidden>
+        <div class="confirm-box" role="dialog" aria-modal="true" aria-labelledby="profileConfirmTitle">
+          <h3 id="profileConfirmTitle">确认操作</h3>
+          <p id="profileConfirmText"></p>
+          <div class="action-pair">
+            <button class="ghost-action" id="profileConfirmCancel" type="button">取消</button>
+            <button class="primary-action" id="profileConfirmOk" type="button">确认</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast">操作成功</div>
+
+      <nav class="bottom-nav" aria-label="底部导航">
+        <button class="nav-item active" data-nav="home" data-go="home"><i>⌂</i><span>首页</span></button>
+        <button class="nav-item" data-nav="discover" data-go="discover"><i>◉</i><span>发现</span></button>
+        <button class="nav-item" data-nav="agent" data-go="agent"><i>问</i><span>智能体</span></button>
+        <button class="nav-item" data-nav="profile" data-go="profile"><i>☻</i><span>我的</span></button>
+      </nav>
+    </section>
+
+    <aside class="notes">
+      <h2>井冈山宣传小程序 UI 第二版</h2>
+      <p>这一版优化了个人中心，短视频新增 AI活化老照片功能，并把漫画互动整合进红色 IP 表情包的应用方式中。可以点击快捷入口、底部导航、下载、发布、规划、进入等按钮试用流程。</p>
+      <div class="module-map">
+        <div class="module">
+          <h3>IP 表情包</h3>
+          <p>进入角色库，模拟生成、下载、复制宣发文案。</p>
+        </div>
+        <div class="module">
+          <h3>短视频创作</h3>
+          <p>切换成片类型，填写关键词，生成脚本提示。</p>
+        </div>
+        <div class="module">
+          <h3>井冈山智能体</h3>
+          <p>底栏独立入口，后续接入对话问答解决用户关于井冈山的其他问题。</p>
+        </div>
+        <div class="module">
+          <h3>调研路线</h3>
+          <p>路线列表可点击加入，后续可接地图和任务卡。</p>
+        </div>
+      </div>
+      <a class="primary" href="index.html">打开原型页面</a>
+    </aside>
+  </main>
+
+  <script>
+    if (false) {
+    const app = document.querySelector("#app");
+    const screens = [...document.querySelectorAll(".screen")];
+    const navItems = [...document.querySelectorAll(".nav-item")];
+    const toast = document.querySelector("#toast");
+    let toastTimer;
+
+    function showToast(message) {
+      toast.textContent = message || "操作成功";
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    function setActiveNav(screenName) {
+      const navName = ["home", "discover", "agent", "profile"].includes(screenName) ? screenName : "";
+      navItems.forEach(item => {
+        item.classList.toggle("active", item.dataset.nav === navName);
+      });
+    }
+
+    function go(screenName) {
+      screens.forEach(screen => {
+        screen.classList.toggle("active", screen.dataset.screen === screenName);
+      });
+      setActiveNav(screenName);
+      app.scrollTop = 0;
+    }
+
+    const agentChat = document.querySelector("#agentChat");
+    const agentInput = document.querySelector("#agentInput");
+    const agentSend = document.querySelector("#agentSend");
+    const agentSettings = document.querySelector("#agentSettings");
+
+    const agentAnswers = [
+      {
+        keys: ["半日", "半天", "路线", "规划", "行程"],
+        answer: "推荐半日路线：茨坪游客中心出发，先到三湾改编纪念地了解组织建设故事，再去神山村做乡村振兴访谈，最后选择黄洋界作为山地视野打卡点。时间紧的话保留“三湾 + 神山村”两站。"
+      },
+      {
+        keys: ["三湾", "改编", "怎么讲", "讲给同学"],
+        answer: "可以这样讲：三湾改编的重点不是单纯讲事件时间，而是讲“队伍如何被重新组织起来”。面向同学可用三个关键词：支部建在连上、官兵平等、组织凝聚力。最后用一个问题互动：为什么组织方式会影响一支队伍的战斗力？"
+      },
+      {
+        keys: ["神山村", "调研", "乡村振兴", "采访"],
+        answer: "神山村适合做三类调研：一是乡村振兴前后变化，二是红色文化与旅游融合，三是村民口述故事。采访可问：这些年村里最大的变化是什么？游客最常问什么？年轻人如何参与家乡建设？"
+      },
+      {
+        keys: ["采访提纲", "提纲", "问题"],
+        answer: "研学采访提纲建议：1. 个人与地点的关系；2. 村庄或景点的变化；3. 让你印象最深的红色故事；4. 游客或学生最容易忽略的细节；5. 对青年研学的建议。每个问题后面留一个“可追问”空位。"
+      },
+      {
+        keys: ["短视频", "旁白", "脚本", "vlog"],
+        answer: "短视频旁白示例：从井冈山的山路出发，我们看到的不只是风景，还有一代人如何在艰难处境中寻找方向。今天的研学任务，是把旧址、村庄和青年视角连接起来，让红色故事被更多人听见。"
+      },
+      {
+        keys: ["黄洋界", "景点"],
+        answer: "黄洋界适合做“山地视野 + 历史现场”的讲解点。拍摄时可以用远景交代地形，再用近景拍标识、道路和同学观察细节，最后引出地理条件与历史故事之间的关系。"
+      },
+      {
+        keys: ["ip", "表情", "漫画", "贴纸"],
+        answer: "IP 模块可以这样用：先统一“小井小冈”的角色设定，再生成表情包；如果要增强互动，可以把角色放进漫画问答、路线打卡贴纸和短视频角标里，形成一套连续传播素材。"
+      },
+      {
+        keys: ["ai活化", "老照片", "黑白", "实况"],
+        answer: "AI活化适合用于短视频开头或转场：先展示黑白老照片，再生成 3-4 秒彩色实况效果，最后切回今天的实地画面。注意标注“AI活化演示”，避免观众误解为真实历史影像。"
+      }
+    ];
+
+    function appendMessage(text, role = "agent") {
+      if (!agentChat) return;
+      const row = document.createElement("div");
+      row.className = role === "user" ? "chat-row user" : "chat-row";
+      if (role !== "user") {
+        const avatar = document.createElement("div");
+        avatar.className = "agent-avatar";
+        avatar.textContent = "井";
+        row.appendChild(avatar);
+      }
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      row.appendChild(bubble);
+      agentChat.appendChild(row);
+      row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      return bubble;
+    }
+
+    function getAgentAnswer(question) {
+      const normalized = question.toLowerCase();
+      const hit = agentAnswers.find(item => item.keys.some(key => normalized.includes(key.toLowerCase())));
+      if (hit) return hit.answer;
+      return "这个问题可以继续细化。我目前可以回答井冈山路线规划、三湾改编讲解、神山村调研、研学采访提纲、短视频旁白、IP应用和AI活化等方向。你也可以试着问：“帮我规划半日路线”。";
+    }
+
+    let agentApiEndpoint = localStorage.getItem("JGS_AGENT_API") || "";
+
+    function setAgentEndpoint(endpoint) {
+      agentApiEndpoint = endpoint.trim();
+      if (agentApiEndpoint) {
+        localStorage.setItem("JGS_AGENT_API", agentApiEndpoint);
+        showToast("智能体 API 地址已保存");
+      } else {
+        localStorage.removeItem("JGS_AGENT_API");
+        showToast("已切换为本地问答模式");
+      }
+    }
+
+    async function getOnlineAgentAnswer(question) {
+      if (!agentApiEndpoint) return null;
+      const response = await fetch(agentApiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+      });
+      if (!response.ok) throw new Error("online agent request failed");
+      const data = await response.json();
+      return data.answer || data.output_text || data.text || data.result || null;
+    }
+
+    async function askAgent(question) {
+      const text = question.trim();
+      if (!text) {
+        showToast("请输入一个问题");
+        return;
+      }
+      appendMessage(text, "user");
+      if (agentInput) agentInput.value = "";
+      const pending = appendMessage(agentApiEndpoint ? "正在联网查询井冈山相关资料..." : "正在整理回答...");
+      try {
+        const onlineAnswer = await getOnlineAgentAnswer(text);
+        pending.textContent = onlineAnswer || getAgentAnswer(text);
+      } catch (error) {
+        pending.textContent = `${getAgentAnswer(text)}\n\n提示：联网接口暂时不可用，已使用本地知识库回答。`;
+      }
+    }
+
+    agentSend?.addEventListener("click", () => askAgent(agentInput?.value || ""));
+    agentInput?.addEventListener("keydown", event => {
+      if (event.key === "Enter") askAgent(agentInput.value || "");
+    });
+    agentSettings?.addEventListener("click", () => {
+      const endpoint = window.prompt(
+        "请输入你们部署的智能体 API 地址，例如：https://example.com/api/chat",
+        agentApiEndpoint || ""
+      );
+      if (endpoint !== null) setAgentEndpoint(endpoint);
+    });
+
+    document.addEventListener("click", event => {
+      const promptButton = event.target.closest("[data-agent-question]");
+      if (promptButton) {
+        askAgent(promptButton.dataset.agentQuestion);
+        return;
+      }
+
+      const actionButton = event.target.closest("[data-action]");
+      if (actionButton?.dataset.action === "toast") {
+        showToast(actionButton.dataset.message);
+        return;
+      }
+
+      const goButton = event.target.closest("[data-go]");
+      if (goButton) {
+        go(goButton.dataset.go);
+      }
+    });
+
+    document.querySelectorAll("[data-segment]").forEach(group => {
+      group.addEventListener("click", event => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        group.querySelectorAll("button").forEach(item => item.classList.remove("selected"));
+        button.classList.add("selected");
+        showToast(`已选择：${button.textContent}`);
+      });
+    });
+    }
+  </script>
+  <script>
+    (() => {
+      const appEl = document.querySelector("#app");
+      const screensEl = [...document.querySelectorAll(".screen")];
+      const navItemsEl = [...document.querySelectorAll(".nav-item")];
+      const toastEl = document.querySelector("#toast");
+      const chatEl = document.querySelector("#agentChat");
+      const inputEl = document.querySelector("#agentInput");
+      const sendEl = document.querySelector("#agentSend");
+      let toastHandle;
+      const endpoint = window.getJgsAgentEndpoint?.() || "";
+
+      function toast(message) {
+        if (!toastEl) return;
+        toastEl.textContent = message || "操作成功";
+        toastEl.classList.add("show");
+        clearTimeout(toastHandle);
+        toastHandle = setTimeout(() => toastEl.classList.remove("show"), 1500);
+      }
+
+      function activate(screenName) {
+        screensEl.forEach(screen => {
+          screen.classList.toggle("active", screen.dataset.screen === screenName);
+        });
+        const navScreen = screenName.startsWith("profile-") ? "profile" : screenName;
+        navItemsEl.forEach(item => {
+          item.classList.toggle("active", item.dataset.nav === navScreen);
+        });
+        if (appEl) appEl.scrollTop = 0;
+      }
+
+      const localAnswers = [
+        {
+          keys: ["半日", "半天", "路线", "规划", "行程"],
+          answer: "推荐半日路线：茨坪游客中心出发，先到三湾改编纪念地了解组织建设故事，再去神山村做乡村振兴访谈，最后选择黄洋界作为山地视野打卡点。时间紧的话保留“三湾 + 神山村”两站。"
+        },
+        {
+          keys: ["三湾", "改编", "怎么讲", "同学"],
+          answer: "可以这样讲：三湾改编的重点不是单纯讲事件时间，而是讲“队伍如何被重新组织起来”。面向同学可用三个关键词：支部建在连上、官兵平等、组织凝聚力。最后用一个问题互动：为什么组织方式会影响一支队伍的战斗力？"
+        },
+        {
+          keys: ["神山村", "调研", "乡村振兴", "采访"],
+          answer: "神山村适合做三类调研：一是乡村振兴前后变化，二是红色文化与旅游融合，三是村民口述故事。采访可问：这些年村里最大的变化是什么？游客最常问什么？年轻人如何参与家乡建设？"
+        },
+        {
+          keys: ["采访提纲", "提纲", "问题"],
+          answer: "研学采访提纲建议：1. 个人与地点的关系；2. 村庄或景点的变化；3. 让你印象最深的红色故事；4. 游客或学生最容易忽略的细节；5. 对青年研学的建议。"
+        },
+        {
+          keys: ["短视频", "旁白", "脚本", "vlog"],
+          answer: "短视频旁白示例：从井冈山的山路出发，我们看到的不只是风景，还有一代人如何在艰难处境中寻找方向。今天的研学任务，是把旧址、村庄和青年视角连接起来，让红色故事被更多人听见。"
+        },
+        {
+          keys: ["ip", "表情", "漫画", "贴纸"],
+          answer: "IP 模块可以这样用：先统一“小井小冈”的角色设定，再生成表情包；如果要增强互动，可以把角色放进漫画问答、路线打卡贴纸和短视频角标里，形成一套连续传播素材。"
+        },
+        {
+          keys: ["ai活化", "老照片", "黑白", "实况"],
+          answer: "AI活化适合用于短视频开头或转场：先展示黑白老照片，再生成 3-4 秒彩色实况效果，最后切回今天的实地画面。注意标注“AI活化演示”，避免观众误解为真实历史影像。"
+        }
+      ];
+
+      let verifiedKnowledge = Array.isArray(window.__JGS_KNOWLEDGE_BASE__?.entries)
+        ? window.__JGS_KNOWLEDGE_BASE__.entries
+        : [];
+
+      if (!verifiedKnowledge.length) {
+        fetch("assets/jinggangshan-knowledge-base.json")
+          .then(response => response.ok ? response.json() : Promise.reject(new Error("Knowledge base unavailable")))
+          .then(data => { verifiedKnowledge = Array.isArray(data.entries) ? data.entries : []; })
+          .catch(() => {});
+      }
+
+      function localAnswer(question) {
+        const normalized = question.toLowerCase();
+        const bestKnowledge = verifiedKnowledge
+          .map(entry => ({
+            entry,
+            score: (entry.keywords || []).reduce((sum, key) => sum + (normalized.includes(String(key).toLowerCase()) ? String(key).length : 0), 0)
+          }))
+          .filter(item => item.score > 0)
+          .sort((a, b) => b.score - a.score)[0];
+        if (bestKnowledge) {
+          return bestKnowledge.entry.answer;
+        }
+        const hit = localAnswers.find(item => item.keys.some(key => normalized.includes(key.toLowerCase())));
+        return hit
+          ? hit.answer
+          : "这个问题暂时没有收录在当前知识库中。可以换一种问法，或询问三湾改编、朱毛会师、黄洋界、历史人物和研学路线等内容。涉及开放时间、门票和交通，请以景区当日公告为准。";
+      }
+
+      function cleanAnswer(value) {
+        return String(value || "")
+          .split("\n")
+          .filter(line => !/^\s*资料来源[：:]/.test(line) && !/^\s*提示[：:].*API/i.test(line))
+          .join("\n")
+          .trim();
+      }
+
+      function appendBubble(text, role = "agent") {
+        if (!chatEl) return null;
+        const row = document.createElement("div");
+        row.className = role === "user" ? "chat-row user" : "chat-row";
+        if (role !== "user") {
+          const avatar = document.createElement("div");
+          avatar.className = "agent-avatar";
+          avatar.textContent = "井";
+          row.appendChild(avatar);
+        }
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
+        row.appendChild(bubble);
+        chatEl.appendChild(row);
+        row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        return bubble;
+      }
+
+      async function onlineAnswer(question) {
+        if (!endpoint) return null;
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question, message: question })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return data.answer || data.output_text || data.text || data.result || data.message || null;
+      }
+
+      async function ask(question) {
+        const text = String(question || "").trim();
+        if (!text) {
+          toast("请输入一个问题");
+          return;
+        }
+        appendBubble(text, "user");
+        if (inputEl) inputEl.value = "";
+        const pending = appendBubble("正在查找井冈山相关信息...");
+        try {
+          const answer = await onlineAnswer(text);
+          pending.textContent = cleanAnswer(answer || localAnswer(text));
+        } catch (err) {
+          pending.textContent = cleanAnswer(localAnswer(text));
+        }
+      }
+
+      document.addEventListener("click", event => {
+        const navTarget = event.target.closest("[data-go]");
+        if (navTarget) {
+          event.preventDefault();
+          activate(navTarget.dataset.go);
+          return;
+        }
+
+        const prompt = event.target.closest("[data-agent-question]");
+        if (prompt) {
+          event.preventDefault();
+          ask(prompt.dataset.agentQuestion);
+          return;
+        }
+
+      }, true);
+
+      sendEl?.addEventListener("click", event => {
+        event.preventDefault();
+        ask(inputEl?.value);
+      });
+
+      inputEl?.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          ask(inputEl.value);
+        }
+      });
+    })();
+  </script>
+  <script>
+    (() => {
+      const PROFILE_KEY = "JGS_PROFILE_V1";
+      const POINTS_KEY = "JGS_POINTS_V1";
+      const SETTINGS_KEY = "JGS_SETTINGS_V1";
+      const CACHE_KEY = "JGS_CACHE_STATE_V1";
+      const REFERRAL_KEY = "JGS_REFERRAL_V1";
+      const ADDED_KEY = "JGS_MINIAPP_ADDED_V1";
+      const USER_ID_KEY = "JGS_USER_ID_V1";
+      const userApiBase = window.getJgsUserApiBase?.() || "";
+      const toastEl = document.querySelector("#toast");
+      let toastTimer;
+
+      const defaults = {
+        profile: { nickname: "研学同学", realName: "", organization: "", role: "学生", phone: "", bio: "", avatar: "" },
+        points: {
+          balance: 1280,
+          lastCheckin: "",
+          history: [
+            { title: "完成三湾改编知识问答", date: "今天 09:20", amount: 30 },
+            { title: "发布研学短视频", date: "昨天 18:45", amount: 80 },
+            { title: "黄洋界路线打卡", date: "7月13日", amount: 50 },
+            { title: "兑换官方表情包", date: "7月12日", amount: -100 }
+          ]
+        },
+        settings: { notifications: true, location: true, autoplay: false, analytics: false },
+        cache: { images: 9017754, knowledge: 430080, routes: 184320, drafts: 98304 }
+      };
+
+      function clone(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function readState(key, fallback) {
+        try {
+          const value = JSON.parse(localStorage.getItem(key));
+          return value && typeof value === "object" ? Object.assign(clone(fallback), value) : clone(fallback);
+        } catch (error) {
+          return clone(fallback);
+        }
+      }
+
+      function writeState(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) {}
+      }
+
+      function getUserId() {
+        try {
+          let userId = localStorage.getItem(USER_ID_KEY);
+          if (!userId) {
+            userId = crypto.randomUUID ? crypto.randomUUID() : `jgs-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            localStorage.setItem(USER_ID_KEY, userId);
+          }
+          return userId;
+        } catch (error) {
+          return "jgs-local-user";
+        }
+      }
+
+      const userId = getUserId();
+
+      function notify(message) {
+        if (!toastEl) return;
+        toastEl.textContent = message;
+        toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1800);
+      }
+
+      async function api(path, options = {}) {
+        if (!userApiBase) return null;
+        try {
+          const response = await fetch(`${userApiBase}${path}`, {
+            ...options,
+            headers: { "Content-Type": "application/json", "X-JGS-User-ID": userId, ...(options.headers || {}) }
+          });
+          if (!response.ok) return null;
+          return response.status === 204 ? {} : await response.json();
+        } catch (error) {
+          return null;
+        }
+      }
+
+      let profile = readState(PROFILE_KEY, defaults.profile);
+      let points = readState(POINTS_KEY, defaults.points);
+      let settings = readState(SETTINGS_KEY, defaults.settings);
+      let cacheState = readState(CACHE_KEY, defaults.cache);
+
+      const profileFields = {
+        nickname: document.querySelector("#profileNickname"),
+        realName: document.querySelector("#profileRealName"),
+        organization: document.querySelector("#profileOrganization"),
+        role: document.querySelector("#profileRole"),
+        phone: document.querySelector("#profilePhone"),
+        bio: document.querySelector("#profileBio")
+      };
+      const profileDisplayName = document.querySelector("#profileDisplayName");
+      const avatarButton = document.querySelector("#profileAvatarButton");
+      const avatarInput = document.querySelector("#profileAvatarInput");
+      const profileForm = document.querySelector("#profileForm");
+      const pointsBalance = document.querySelector("#pointsBalance");
+      const pointsHistory = document.querySelector("#pointsHistory");
+      const pointsCheckin = document.querySelector("#pointsCheckin");
+      const cacheUsage = document.querySelector("#cacheUsage");
+      const profileCacheSummary = document.querySelector("#profileCacheSummary");
+      const confirmLayer = document.querySelector("#profileConfirmLayer");
+      const confirmTitle = document.querySelector("#profileConfirmTitle");
+      const confirmText = document.querySelector("#profileConfirmText");
+      const confirmCancel = document.querySelector("#profileConfirmCancel");
+      const confirmOk = document.querySelector("#profileConfirmOk");
+      let confirmAction = null;
+
+      function renderAvatar() {
+        if (!avatarButton) return;
+        avatarButton.replaceChildren();
+        if (profile.avatar) {
+          const image = document.createElement("img");
+          image.src = profile.avatar;
+          image.alt = "个人头像";
+          avatarButton.appendChild(image);
+        } else {
+          avatarButton.textContent = (profile.nickname || "研").slice(0, 1);
+        }
+      }
+
+      function renderProfile() {
+        Object.entries(profileFields).forEach(([key, field]) => {
+          if (field) field.value = profile[key] || "";
+        });
+        if (profileDisplayName) profileDisplayName.textContent = profile.nickname || "研学同学";
+        renderAvatar();
+      }
+
+      function renderPoints() {
+        if (pointsBalance) pointsBalance.textContent = String(points.balance || 0);
+        if (!pointsHistory) return;
+        pointsHistory.replaceChildren();
+        (points.history || []).forEach(item => {
+          const row = document.createElement("div");
+          row.className = "points-item";
+          const copy = document.createElement("span");
+          const title = document.createElement("b");
+          const date = document.createElement("span");
+          title.textContent = item.title;
+          date.textContent = item.date;
+          copy.append(title, date);
+          const amount = document.createElement("strong");
+          amount.className = `points-change${item.amount < 0 ? " minus" : ""}`;
+          amount.textContent = `${item.amount > 0 ? "+" : ""}${item.amount}`;
+          row.append(copy, amount);
+          pointsHistory.appendChild(row);
+        });
+        const today = new Date().toLocaleDateString("zh-CN");
+        if (pointsCheckin) {
+          pointsCheckin.disabled = points.lastCheckin === today;
+          pointsCheckin.textContent = points.lastCheckin === today ? "今日已签到" : "今日签到";
+        }
+      }
+
+      function formatBytes(bytes) {
+        if (bytes <= 0) return "0 KB";
+        if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
+        return `${Math.ceil(bytes / 1024)} KB`;
+      }
+
+      function renderCache() {
+        const total = Object.values(cacheState).reduce((sum, value) => sum + Number(value || 0), 0);
+        if (cacheUsage) cacheUsage.textContent = formatBytes(total);
+        if (profileCacheSummary) profileCacheSummary.textContent = total ? ` · ${formatBytes(total)}` : " · 已清理";
+        const labels = {
+          images: document.querySelector("#cacheImagesSize"),
+          knowledge: document.querySelector("#cacheKnowledgeSize"),
+          routes: document.querySelector("#cacheRoutesSize"),
+          drafts: document.querySelector("#cacheDraftsSize")
+        };
+        Object.entries(labels).forEach(([key, label]) => {
+          if (label) label.textContent = formatBytes(cacheState[key] || 0);
+          const checkbox = document.querySelector(`[data-cache-key="${key}"]`);
+          if (checkbox) checkbox.disabled = !cacheState[key];
+        });
+      }
+
+      function renderSettings() {
+        document.querySelectorAll("[data-setting]").forEach(input => {
+          input.checked = Boolean(settings[input.dataset.setting]);
+        });
+      }
+
+      function openDialog(title, message, onConfirm, infoOnly = false) {
+        if (!confirmLayer) return;
+        confirmTitle.textContent = title;
+        confirmText.textContent = message;
+        confirmAction = onConfirm || null;
+        confirmCancel.hidden = infoOnly;
+        confirmOk.textContent = infoOnly ? "知道了" : "确认";
+        confirmLayer.hidden = false;
+      }
+
+      function closeDialog() {
+        if (confirmLayer) confirmLayer.hidden = true;
+        confirmAction = null;
+      }
+
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (error) {
+          const area = document.createElement("textarea");
+          area.value = text;
+          area.style.position = "fixed";
+          area.style.opacity = "0";
+          document.body.appendChild(area);
+          area.select();
+          const copied = document.execCommand("copy");
+          area.remove();
+          return copied;
+        }
+      }
+
+      profileForm?.addEventListener("submit", async event => {
+        event.preventDefault();
+        const phone = profileFields.phone?.value.trim() || "";
+        if (phone && !/^1\d{10}$/.test(phone)) {
+          notify("请输入正确的 11 位手机号");
+          return;
+        }
+        Object.entries(profileFields).forEach(([key, field]) => {
+          profile[key] = field?.value.trim() || "";
+        });
+        writeState(PROFILE_KEY, profile);
+        renderProfile();
+        notify("个人信息已保存");
+        api("/profile", { method: "PUT", body: JSON.stringify(profile) });
+      });
+
+      avatarButton?.addEventListener("click", () => avatarInput?.click());
+      avatarInput?.addEventListener("change", () => {
+        const file = avatarInput.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          notify("请选择图片文件");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = new Image();
+          image.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 256;
+            canvas.height = 256;
+            const context = canvas.getContext("2d");
+            const side = Math.min(image.width, image.height);
+            const sx = (image.width - side) / 2;
+            const sy = (image.height - side) / 2;
+            context.drawImage(image, sx, sy, side, side, 0, 0, 256, 256);
+            profile.avatar = canvas.toDataURL("image/jpeg", .82);
+            writeState(PROFILE_KEY, profile);
+            renderAvatar();
+            notify("头像已更新");
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      pointsCheckin?.addEventListener("click", () => {
+        const today = new Date().toLocaleDateString("zh-CN");
+        if (points.lastCheckin === today) return;
+        points.lastCheckin = today;
+        points.balance = Number(points.balance || 0) + 20;
+        points.history.unshift({ title: "每日研学签到", date: "刚刚", amount: 20 });
+        writeState(POINTS_KEY, points);
+        renderPoints();
+        notify("签到成功，积分 +20");
+        api("/points/checkin", { method: "POST", body: JSON.stringify({ date: today }) });
+      });
+
+      document.querySelectorAll("[data-setting]").forEach(input => {
+        input.addEventListener("change", () => {
+          settings[input.dataset.setting] = input.checked;
+          writeState(SETTINGS_KEY, settings);
+          notify("设置已保存");
+          api("/settings", { method: "PUT", body: JSON.stringify(settings) });
+        });
+      });
+
+      document.querySelector("#clearSelectedCache")?.addEventListener("click", () => {
+        const selected = [...document.querySelectorAll("[data-cache-key]:checked")].map(input => input.dataset.cacheKey);
+        if (!selected.length) {
+          notify("请选择要清理的缓存");
+          return;
+        }
+        openDialog("清理缓存", `将清理 ${selected.length} 类应用缓存，个人资料和积分不会受到影响。`, async () => {
+          selected.forEach(key => { cacheState[key] = 0; });
+          try {
+            Object.keys(localStorage).filter(key => key.startsWith("JGS_CACHE_") && key !== CACHE_KEY).forEach(key => localStorage.removeItem(key));
+          } catch (error) {}
+          if ("caches" in window) {
+            try {
+              const names = await caches.keys();
+              await Promise.all(names.filter(name => /jgs|jinggangshan/i.test(name)).map(name => caches.delete(name)));
+            } catch (error) {}
+          }
+          writeState(CACHE_KEY, cacheState);
+          renderCache();
+          notify("所选缓存已清理");
+        });
+      });
+
+      document.querySelector("#markMiniappAdded")?.addEventListener("click", event => {
+        try { localStorage.setItem(ADDED_KEY, "1"); } catch (error) {}
+        event.currentTarget.textContent = "已添加到我的小程序";
+        event.currentTarget.disabled = true;
+        notify("状态已记录");
+      });
+
+      document.addEventListener("click", async event => {
+        const action = event.target.closest("[data-profile-action]")?.dataset.profileAction;
+        if (!action) return;
+        if (action === "ask-support") {
+          const input = document.querySelector("#agentInput");
+          if (input) input.value = "我在使用小程序时遇到问题，请帮我排查";
+          document.querySelector('[data-go="agent"]')?.click();
+        }
+        if (action === "copy-support") {
+          await copyText("井冈山研学客服：JGS-HELP");
+          notify("客服号已复制");
+        }
+        if (action === "copy-referral") {
+          const code = document.querySelector("#referralCode")?.textContent || "JGS-1927";
+          await copyText(`和我一起用井冈山研学小程序，推荐码：${code}`);
+          notify("邀请文案已复制");
+        }
+        if (action === "share-referral") {
+          const code = document.querySelector("#referralCode")?.textContent || "JGS-1927";
+          const shareData = { title: "井冈山研学", text: `和我一起开启井冈山研学，推荐码：${code}`, url: location.href };
+          if (navigator.share) {
+            try { await navigator.share(shareData); } catch (error) {}
+          } else {
+            await copyText(`${shareData.text} ${shareData.url}`);
+            notify("分享内容已复制");
+          }
+        }
+        if (action === "privacy") {
+          openDialog("隐私与数据说明", "个人资料和偏好默认保存在当前设备；定位仅用于当次路线规划。接入服务器后应提供账号注销、数据导出和删除能力。", null, true);
+        }
+        if (action === "about") {
+          openDialog("关于小程序", "井冈山宣传小程序原型，包含红色知识、研学路线、青年创作、官方表情和智能问答等模块。", null, true);
+        }
+        if (action === "reset-profile") {
+          openDialog("重置个人数据", "将删除当前设备上的个人资料、积分记录与使用偏好，此操作无法撤销。", async () => {
+            [PROFILE_KEY, POINTS_KEY, SETTINGS_KEY, REFERRAL_KEY, ADDED_KEY].forEach(key => {
+              try { localStorage.removeItem(key); } catch (error) {}
+            });
+            profile = clone(defaults.profile);
+            points = clone(defaults.points);
+            settings = clone(defaults.settings);
+            renderProfile();
+            renderPoints();
+            renderSettings();
+            document.querySelector("#markMiniappAdded")?.removeAttribute("disabled");
+            const addButton = document.querySelector("#markMiniappAdded");
+            if (addButton) addButton.textContent = "标记为已添加";
+            notify("个人数据已重置");
+            api("/profile", { method: "DELETE" });
+          });
+        }
+      });
+
+      confirmCancel?.addEventListener("click", closeDialog);
+      confirmOk?.addEventListener("click", async () => {
+        const action = confirmAction;
+        closeDialog();
+        if (action) await action();
+      });
+      confirmLayer?.addEventListener("click", event => {
+        if (event.target === confirmLayer) closeDialog();
+      });
+
+      async function syncFromServer() {
+        const [remoteProfile, remotePoints, remoteSettings] = await Promise.all([
+          api("/profile"), api("/points"), api("/settings")
+        ]);
+        if (remoteProfile?.profile) {
+          profile = Object.assign(clone(defaults.profile), remoteProfile.profile);
+          writeState(PROFILE_KEY, profile);
+          renderProfile();
+        }
+        if (remotePoints?.points) {
+          points = Object.assign(clone(defaults.points), remotePoints.points);
+          writeState(POINTS_KEY, points);
+          renderPoints();
+        }
+        if (remoteSettings?.settings) {
+          settings = Object.assign(clone(defaults.settings), remoteSettings.settings);
+          writeState(SETTINGS_KEY, settings);
+          renderSettings();
+        }
+      }
+
+      const referral = readState(REFERRAL_KEY, { code: "JGS-1927", count: 3 });
+      const referralCode = document.querySelector("#referralCode");
+      const referralCount = document.querySelector("#referralCount");
+      if (referralCode) referralCode.textContent = referral.code;
+      if (referralCount) referralCount.textContent = String(referral.count);
+      const addButton = document.querySelector("#markMiniappAdded");
+      try {
+        if (addButton && localStorage.getItem(ADDED_KEY) === "1") {
+          addButton.textContent = "已添加到我的小程序";
+          addButton.disabled = true;
+        }
+      } catch (error) {}
+
+      renderProfile();
+      renderPoints();
+      renderSettings();
+      renderCache();
+      syncFromServer();
+    })();
+  </script>
+  <script>
+    (() => {
+      const stickerPacks = [
+        {
+          id: "red-soldier",
+          title: "小红军官方表情",
+          archive: "assets/stickers/jinggangshan-red-soldier-official-pack.zip",
+          labels: ["收到", "开冲", "尊嘟假嘟", "活人感拉满", "情绪价值+1", "DeepSeek一下", "已安排", "稳住", "拿下", "摸鱼中", "敬自己一杯", "爱你老己"]
+        },
+        {
+          id: "red-bugle",
+          title: "红色号角官方表情",
+          archive: "assets/stickers/jinggangshan-red-bugle-official-pack.zip",
+          labels: ["集合", "收到", "开工", "沟通一下", "方案确认", "辛苦了", "专注中", "搞定", "团队协作", "冲一把", "学习中", "马上办", "安排上", "复盘中", "开会中", "休息一下"]
+        },
+        {
+          id: "red-torch",
+          title: "红军火炬官方表情",
+          archive: "assets/stickers/jinggangshan-red-torch-official-pack.zip",
+          labels: ["已读秒办", "助我破鼎", "情绪价值拉满", "DeepSeek一下", "有点东西", "这把稳了", "CPU烧了", "先充个电", "拿捏了", "班味退散", "赛博续命", "美美下班"]
+        },
+        {
+          id: "bamboo-rice",
+          title: "竹筒饭官方表情",
+          archive: "assets/stickers/jinggangshan-bamboo-rice-official-pack.zip",
+          labels: ["真香", "补充能量", "冲刺中", "辛苦了", "收到", "加个餐", "专注中", "搞定", "安排上", "学习中", "下午继续", "马上办", "开工", "稳住", "休息一下", "一起加油"]
+        }
+      ];
+
+      const library = document.querySelector('[data-screen="ip"] .face-grid');
+      if (!library) return;
+      const card = library.closest('.item-card');
+      const title = card.querySelector('h3');
+      const description = card.querySelector('p');
+      const action = card.querySelector('.primary-action');
+      let selectedPack = stickerPacks[0];
+
+      if (title) title.textContent = '官方表情包';
+      if (description) description.textContent = '4 套模板，共 56 张。点击任意表情可单张下载。';
+      if (action) action.remove();
+      library.className = 'sticker-grid';
+      library.insertAdjacentHTML('beforebegin', '<div class="sticker-tabs" id="stickerTabs"></div><div class="sticker-download-note"><span id="stickerCount">当前套装：12 张 PNG</span><a id="stickerPackDownload" download>下载整包</a></div>');
+      library.insertAdjacentHTML('afterend', '<div class="personalize-card"><h3>个性化红军面相定制</h3><p>上传本人或已获授权的人像，保留面部特征并卡通化为个人专属红军表情。</p><button class="primary-action" type="button" data-go="sticker-custom">开始定制</button></div>');
+
+      const tabs = document.querySelector('#stickerTabs');
+      const packDownload = document.querySelector('#stickerPackDownload');
+      const stickerCount = document.querySelector('#stickerCount');
+
+      function renderStickerLibrary() {
+        tabs.innerHTML = stickerPacks.map(pack => '<button class="sticker-tab ' + (pack.id === selectedPack.id ? 'selected' : '') + '" type="button" data-sticker-pack="' + pack.id + '">' + pack.title + '</button>').join('');
+        packDownload.href = selectedPack.archive;
+        packDownload.textContent = '下载整包';
+        stickerCount.textContent = '当前套装：' + selectedPack.labels.length + ' 张 PNG';
+        library.innerHTML = selectedPack.labels.map((label, index) => {
+          const image = (window.__JGS_STICKER_SOURCES__ && window.__JGS_STICKER_SOURCES__[selectedPack.id] && window.__JGS_STICKER_SOURCES__[selectedPack.id][index]) || ('assets/stickers/' + selectedPack.id + '/' + String(index + 1).padStart(2, '0') + '.png');
+          return '<a class="sticker-tile" href="' + image + '" download="' + selectedPack.id + '-' + String(index + 1).padStart(2, '0') + '.png" title="下载：' + label + '"><img src="' + image + '" alt="' + label + '表情"></a>';
+        }).join('');
+      }
+
+      document.addEventListener('click', event => {
+        const tab = event.target.closest('[data-sticker-pack]');
+        if (tab) {
+          selectedPack = stickerPacks.find(pack => pack.id === tab.dataset.stickerPack) || selectedPack;
+          renderStickerLibrary();
+          return;
+        }
+      }, true);
+
+      renderStickerLibrary();
+    })();
+  </script>
+  <script>
+    (() => {
+      const fileInput = document.querySelector('#customStickerFile');
+      const upload = document.querySelector('#customStickerUpload');
+      const portraitPreview = document.querySelector('#customStickerPortrait');
+      const templateGrid = document.querySelector('#customStickerTemplates');
+      const consent = document.querySelector('#customStickerConsent');
+      const generate = document.querySelector('#customStickerGenerate');
+      const audit = document.querySelector('#customStickerAudit');
+      const auditText = document.querySelector('#customStickerAuditText');
+      const reconnect = document.querySelector('#customStickerReconnect');
+      const result = document.querySelector('#customStickerResult');
+      const resultImage = document.querySelector('#customStickerResultImage');
+      const resultNote = document.querySelector('#customStickerResultNote');
+      const download = document.querySelector('#customStickerDownload');
+      const styleGroup = document.querySelector('#customStickerStyle');
+      if (!fileInput || !templateGrid || !generate) return;
+
+      const labels = ['收到', '开冲', '尊嘟假嘟', '活人感拉满', '情绪价值+1', 'DeepSeek一下', '已安排', '稳住', '拿下', '摸鱼中', '敬自己一杯', '爱你老己'];
+      const sources = labels.map((label, index) => ({
+        id: `red-soldier-${String(index + 1).padStart(2, '0')}`,
+        label,
+        src: (window.__JGS_STICKER_SOURCES__?.['red-soldier']?.[index]) || `assets/stickers/red-soldier/${String(index + 1).padStart(2, '0')}.png`
+      }));
+      let portraitData = '';
+      let selectedTemplate = sources[0];
+      let selectedStyle = 'balanced';
+      let serviceChecked = false;
+      let serviceReady = false;
+      let serviceChecking = false;
+      let serviceMessage = '正在连接 OpenAI 图片服务';
+
+      templateGrid.innerHTML = sources.map((item, index) =>
+        `<button class="custom-sticker-template ${index === 0 ? 'selected' : ''}" type="button" data-custom-template="${item.id}" title="${item.label}"><img src="${item.src}" alt="${item.label}模板"></button>`
+      ).join('');
+
+      function setAudit(status, text) {
+        audit.className = `custom-sticker-audit${status ? ` ${status}` : ''}`;
+        auditText.textContent = text;
+      }
+
+      function updateReady() {
+        generate.disabled = !(serviceReady && portraitData && selectedTemplate && consent.checked);
+        if (!serviceChecked) {
+          setAudit('checking', '正在连接 OpenAI 图片服务');
+        } else if (!serviceReady) {
+          setAudit('blocked', serviceMessage);
+        } else if (portraitData && consent.checked) {
+          setAudit('', '准备就绪，点击后先进行安全审核');
+        } else if (portraitData) {
+          setAudit('', '请确认人像授权后再生成');
+        } else {
+          setAudit('', '上传照片并确认授权后，将进行安全审核');
+        }
+      }
+
+      async function checkService() {
+        if (serviceChecking) return;
+        serviceChecking = true;
+        serviceChecked = false;
+        serviceReady = false;
+        updateReady();
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 5000);
+        try {
+          const response = await fetch(window.getJgsStickerHealthEndpoint(), {
+            cache: 'no-store',
+            signal: controller.signal
+          });
+          const data = await response.json().catch(() => ({}));
+          serviceReady = Boolean(response.ok && data.ok && data.openaiConfigured);
+          serviceMessage = serviceReady
+            ? 'OpenAI 图片服务已连接'
+            : '图片服务已启动，等待管理员配置 OPENAI_API_KEY';
+        } catch (error) {
+          serviceReady = false;
+          serviceMessage = '无法连接图片服务，请管理员启动小程序服务';
+        } finally {
+          window.clearTimeout(timeout);
+          serviceChecked = true;
+          serviceChecking = false;
+          updateReady();
+        }
+      }
+
+      function readPortrait(file) {
+        if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type)) throw new Error('请上传 JPG、PNG 或 WEBP 图片');
+        if (file.size > 10 * 1024 * 1024) throw new Error('图片不能超过 10MB');
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('照片读取失败，请重新选择'));
+          reader.onload = () => {
+            const image = new Image();
+            image.onerror = () => reject(new Error('无法识别这张照片'));
+            image.onload = () => {
+              if (image.naturalWidth < 256 || image.naturalHeight < 256) {
+                reject(new Error('照片分辨率过低，宽高至少需要 256 像素'));
+                return;
+              }
+              const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+              const canvas = document.createElement('canvas');
+              canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+              canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+              canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+              resolve(canvas.toDataURL('image/jpeg', .9));
+            };
+            image.src = String(reader.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function requestGeneration() {
+        const endpoint = window.getJgsStickerEndpoint?.() || '';
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            portrait: portraitData,
+            templateId: selectedTemplate.id,
+            templateLabel: selectedTemplate.label,
+            style: selectedStyle,
+            consent: true
+          })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || data.error || `生成服务暂时不可用（${response.status}）`);
+          error.status = response.status;
+          throw error;
+        }
+        if (!data.image) throw new Error('生成结果为空，请重试');
+        return data.image;
+      }
+
+      function showResult(image, note) {
+        resultImage.src = image;
+        download.href = image;
+        resultNote.textContent = note;
+        result.classList.add('show');
+        result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+
+      fileInput.addEventListener('change', async () => {
+        try {
+          portraitData = await readPortrait(fileInput.files?.[0]);
+          portraitPreview.src = portraitData;
+          upload.classList.add('has-image');
+          result.classList.remove('show');
+          updateReady();
+        } catch (error) {
+          fileInput.value = '';
+          portraitData = '';
+          setAudit('blocked', error.message);
+          updateReady();
+        }
+      });
+
+      templateGrid.addEventListener('click', event => {
+        const button = event.target.closest('[data-custom-template]');
+        if (!button) return;
+        selectedTemplate = sources.find(item => item.id === button.dataset.customTemplate) || sources[0];
+        templateGrid.querySelectorAll('button').forEach(item => item.classList.toggle('selected', item === button));
+        result.classList.remove('show');
+      });
+
+      styleGroup.addEventListener('click', event => {
+        const button = event.target.closest('[data-custom-style]');
+        if (!button) return;
+        selectedStyle = button.dataset.customStyle;
+        styleGroup.querySelectorAll('button').forEach(item => item.classList.toggle('selected', item === button));
+      });
+
+      consent.addEventListener('change', updateReady);
+
+      generate.addEventListener('click', async () => {
+        if (generate.disabled) return;
+        generate.disabled = true;
+        generate.textContent = '正在审核人像...';
+        setAudit('checking', '正在检查图片安全性与使用授权');
+        result.classList.remove('show');
+        const normalizeStatus = window.setTimeout(() => {
+          generate.textContent = '正在统一并卡通化...';
+          setAudit('checking', '正在把面部裁为统一尺寸并生成标准卡通头像');
+        }, 1800);
+        const integrateStatus = window.setTimeout(() => {
+          generate.textContent = '正在融合模板...';
+          setAudit('checking', '正在按模板原有面部大小、角度和表情重新绘制');
+        }, 9000);
+        try {
+          const image = await requestGeneration();
+          setAudit('passed', '审核通过，已完成个性化卡通生成');
+          showResult(image, 'AI 已先生成统一尺寸的标准卡通头像，再按模板原有面部大小、角度和表情完成融合。');
+        } catch (error) {
+          if (error.status === 422) {
+            setAudit('blocked', '照片未通过安全审核，请更换清晰、合规的本人照片');
+          } else {
+            if (error.status === 503) {
+              serviceReady = false;
+              serviceMessage = 'OpenAI 图片服务配置失效，请联系管理员';
+            }
+            setAudit('blocked', error.message || '图片生成失败，请稍后重新生成');
+            result.classList.remove('show');
+          }
+        } finally {
+          window.clearTimeout(normalizeStatus);
+          window.clearTimeout(integrateStatus);
+          generate.disabled = !(serviceReady && portraitData && selectedTemplate && consent.checked);
+          generate.textContent = '重新生成';
+        }
+      });
+
+      document.addEventListener('click', event => {
+        if (!event.target.closest('[data-custom-sticker-reset]')) return;
+        fileInput.value = '';
+        portraitData = '';
+        consent.checked = false;
+        upload.classList.remove('has-image');
+        portraitPreview.removeAttribute('src');
+        result.classList.remove('show');
+        generate.textContent = '审核并生成';
+        updateReady();
+      });
+
+      reconnect?.addEventListener('click', checkService);
+      window.addEventListener('online', checkService);
+      checkService();
+    })();
+  </script>
+  <script>
+    (() => {
+      const startInput = document.querySelector("#routeStart");
+      const locateButton = document.querySelector("#routeLocate");
+      const planButton = document.querySelector("#routePlan");
+      const locationStatus = document.querySelector("#routeLocationStatus");
+      const result = document.querySelector("#routePlanResult");
+      const durationGroup = document.querySelector("#routeDuration");
+      const interestGroup = document.querySelector("#routeInterest");
+      if (!startInput || !locateButton || !planButton || !result) return;
+
+      let currentLocation = null;
+      let duration = "半日";
+      let interest = "红色历史";
+
+      function showResult(text) {
+        result.textContent = text;
+        result.classList.add("show");
+      }
+
+      function localRoute() {
+        const start = startInput.value.trim() || "茨坪游客中心";
+        const plans = {
+          "红色历史": {
+            "半日": `${start} → 茨坪革命旧址 → 黄洋界\n适合围绕“根据地创建与保卫”完成一条紧凑的历史观察线。`,
+            "一日": `${start} → 三湾改编旧址群 → 砻市会师相关旧址 → 茨坪革命旧址 → 黄洋界\n建议按“组织建设—会师发展—根据地保卫”顺序记录研学笔记。`,
+            "两日": `${start} → 三湾改编旧址群 → 砻市会师相关旧址 → 茨坪革命旧址\n次日：大井或茅坪革命旧址 → 黄洋界，并预留博物馆学习与复盘时间。`
+          },
+          "山地风景": {
+            "半日": `${start} → 黄洋界 → 茨坪周边步行观察\n重点观察山地视野与地形如何影响历史现场。`,
+            "一日": `${start} → 黄洋界 → 大井 → 茨坪\n安排时请为山路与天气变化预留弹性时间。`,
+            "两日": `${start} → 黄洋界 → 大井\n次日：茨坪周边自然观察与革命博物馆，兼顾山地风景和历史资料。`
+          },
+          "乡村研学": {
+            "半日": `${start} → 神山村 → 茨坪\n适合做乡村振兴、红色文化传播和人物访谈主题的轻量调研。`,
+            "一日": `${start} → 神山村 → 茨坪革命旧址 → 黄洋界\n可将村庄访谈与历史现场观察组合为一日任务。`,
+            "两日": `${start} → 神山村深度访谈与田野记录\n次日：三湾改编旧址群 → 茨坪 → 黄洋界，完成“乡村—历史—传播”主题线。`
+          }
+        };
+        const locationNote = currentLocation
+          ? "\n已使用你授权的本次位置作为出发参考；坐标不会保存。"
+          : "\n这是离线初步建议，尚未按实时路况计算。";
+        return `本地个性化建议（${duration} · ${interest}）\n${plans[interest][duration]}${locationNote}\n实时道路、开放和预约信息请使用联网规划确认。`;
+      }
+
+      function choose(group, selector, value, update) {
+        group?.addEventListener("click", event => {
+          const button = event.target.closest(selector);
+          if (!button) return;
+          group.querySelectorAll("button").forEach(item => item.classList.toggle("selected", item === button));
+          update(button.dataset[selector === "[data-route-duration]" ? "routeDuration" : "routeInterest"]);
+        });
+      }
+
+      choose(durationGroup, "[data-route-duration]", duration, value => { duration = value; });
+      choose(interestGroup, "[data-route-interest]", interest, value => { interest = value; });
+
+      locateButton.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          locationStatus.textContent = "当前浏览器不支持定位。可填写出发地后继续规划。";
+          return;
+        }
+        locationStatus.textContent = "正在请求位置授权…";
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            currentLocation = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              accuracy: position.coords.accuracy
+            };
+            startInput.value = "已使用当前位置";
+            locationStatus.textContent = "已获得本次位置授权，仅用于当前路线规划，不会写入知识库。";
+          },
+          () => {
+            locationStatus.textContent = "未获得位置授权。你仍可手动填写出发地并规划路线。";
+          },
+          { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 }
+        );
+      });
+
+      planButton.addEventListener("click", async () => {
+        const start = startInput.value.trim() || "茨坪游客中心";
+        const endpoint = window.getJgsAgentEndpoint?.() || "";
+        if (!endpoint) {
+          showResult(localRoute());
+          return;
+        }
+        showResult("正在结合位置、游览时长与主题偏好规划路线…");
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question: `请为我规划一条井冈山${duration}${interest}路线，给出建议顺序、每站看点与实时确认事项。`,
+              context: { start, duration, interest, location: currentLocation }
+            })
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          showResult(data.answer || localRoute());
+        } catch (error) {
+          showResult(localRoute());
+        }
+      });
+    })();
+  </script>
+  <script>
+    (() => {
+      const cloud = document.querySelector("#knowledgeWordCloud");
+      const search = document.querySelector("#discoverSearch");
+      const result = document.querySelector("#discoveryResult");
+      if (!cloud || !search || !result) return;
+
+      const featuredWords = [
+        { label: "井冈山", query: "井冈山革命根据地的历史地位" },
+        { label: "三湾改编", query: "三湾改编" },
+        { label: "朱毛会师", query: "朱毛会师" },
+        { label: "黄洋界", query: "黄洋界保卫战" },
+        { label: "红四军", query: "龙市会师与红四军成立" },
+        { label: "毛泽东", query: "毛泽东：转兵与创建根据地" },
+        { label: "朱德陈毅", query: "朱德与陈毅：率部会师井冈山" },
+        { label: "袁文才王佐", query: "袁文才与王佐：地方武装的团结与改造" },
+        { label: "王尔琢", query: "王尔琢：会师前后的军事工作" },
+        { label: "何挺颖", query: "何挺颖与朱云卿：黄洋界留守防御" },
+        { label: "朱云卿", query: "何挺颖与朱云卿：黄洋界留守防御" },
+        { label: "彭德怀", query: "彭德怀与滕代远：红五军到井冈山" },
+        { label: "滕代远", query: "彭德怀与滕代远：红五军到井冈山" },
+        { label: "龙源口", query: "龙源口战斗中的多方协同" },
+        { label: "工农武装割据", query: "工农武装割据" },
+        { label: "井冈精神", query: "井冈山精神" },
+        { label: "革命博物馆", query: "井冈山革命博物馆" }
+      ];
+      const soldierSlots = [
+        [50, 7, "0deg", "size-xl"],
+        [25, 17, "-1deg", "size-md"], [75, 17, "1deg", "size-md"],
+        [50, 25, "0deg", "size-lg"], [50, 33, "1deg", "size-md"],
+        [22, 42, "-2deg", "size-md"], [77, 42, "2deg", "size-md"],
+        [50, 50, "0deg", "size-sm"],
+        [18, 58, "-2deg", "size-md"], [50, 58, "0deg", "size-md"], [81, 58, "2deg", "size-md"],
+        [50, 66, "0deg", "size-md"],
+        [23, 74, "-1deg", "size-md"], [50, 74, "1deg", "size-md"], [78, 74, "2deg", "size-sm"],
+        [33, 85, "-1deg", "size-sm"], [67, 85, "1deg", "size-sm"]
+      ];
+      let entries = Array.isArray(window.__JGS_KNOWLEDGE_BASE__?.entries)
+        ? window.__JGS_KNOWLEDGE_BASE__.entries
+        : [];
+
+      function scoreEntry(entry, query) {
+        const normalized = query.toLowerCase();
+        let score = entry.title.toLowerCase().includes(normalized) ? 32 : 0;
+        score += (entry.keywords || []).reduce((sum, keyword) => {
+          const text = String(keyword).toLowerCase();
+          return sum + (text.includes(normalized) || normalized.includes(text) ? text.length + 8 : 0);
+        }, 0);
+        if (entry.answer.toLowerCase().includes(normalized)) score += 4;
+        return score;
+      }
+
+      function showResult(query) {
+        const text = String(query || "").trim();
+        const match = entries
+          .map(entry => ({ entry, score: scoreEntry(entry, text) }))
+          .filter(item => item.score > 0)
+          .sort((a, b) => b.score - a.score)[0];
+        result.replaceChildren();
+        if (!match) {
+          const title = document.createElement("h3");
+          title.textContent = text ? `暂未找到“${text}”的知识条目` : "选择一个关键词开始探索";
+          const body = document.createElement("p");
+          body.textContent = "可以换一个词云关键词，或进入井冈山智能体继续提问。";
+          const action = document.createElement("button");
+          action.className = "ghost-action";
+          action.type = "button";
+          action.textContent = "询问智能体";
+          action.addEventListener("click", () => {
+            const agentInput = document.querySelector("#agentInput");
+            if (agentInput) agentInput.value = text || "请介绍井冈山";
+            document.querySelector('[data-go="agent"]')?.click();
+          });
+          result.append(title, body, action);
+          return;
+        }
+        const title = document.createElement("h3");
+        title.textContent = match.entry.title;
+        const body = document.createElement("p");
+        body.textContent = match.entry.answer;
+        const source = document.createElement("a");
+        source.className = "source-link";
+        source.href = match.entry.sourceUrl;
+        source.target = "_blank";
+        source.rel = "noreferrer";
+        source.textContent = `资料来源：${match.entry.sourceName}`;
+        result.append(title, body, source);
+      }
+
+      function renderCloud() {
+        const words = featuredWords.slice(0, soldierSlots.length);
+        cloud.replaceChildren();
+        words.forEach((word, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          const tone = index % 5 === 0 ? "tone-red" : index % 4 === 0 ? "tone-ink" : "";
+          const [x, y, rotation, size] = soldierSlots[index];
+          button.className = `cloud-word ${size} ${tone}`;
+          button.style.setProperty("--cloud-x", `${x}%`);
+          button.style.setProperty("--cloud-y", `${y}%`);
+          button.style.setProperty("--cloud-rotate", rotation);
+          button.textContent = word.label;
+          button.addEventListener("click", () => {
+            search.value = word.query;
+            showResult(word.query);
+          });
+          cloud.appendChild(button);
+        });
+      }
+
+      function hydrateKnowledge(data) {
+        entries = Array.isArray(data?.entries) ? data.entries : [];
+        renderCloud();
+        showResult(search.value || "三湾改编");
+      }
+
+      search.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          showResult(search.value);
+        }
+      });
+
+      if (entries.length) {
+        hydrateKnowledge({ entries });
+      } else {
+        cloud.textContent = "正在加载井冈山知识关键词…";
+        fetch("assets/jinggangshan-knowledge-base.json")
+          .then(response => response.ok ? response.json() : Promise.reject(new Error("Knowledge base unavailable")))
+          .then(hydrateKnowledge)
+          .catch(() => {
+            cloud.textContent = "知识关键词暂时不可用，请使用智能体继续搜索。";
+            showResult(search.value);
+          });
+      }
+    })();
+  </script>
+</body>
+</html>
