@@ -1,5 +1,6 @@
 name: Build distributable artifacts
 
+# Generated archives are rebuilt from the tracked source assets.
 on:
   workflow_dispatch:
   push:
@@ -50,6 +51,7 @@ jobs:
           git add outputs/jinggangshan-miniapp-prototype.zip
           git add outputs/assets/stickers/*-official-pack.zip
           if (-not (git diff --cached --quiet)) {
-            git commit -m "构建独立版与表情包下载文件"
+            git commit -m "鏋勫缓鐙珛鐗堜笌琛ㄦ儏鍖呬笅杞芥枃浠?
             git push
           }
+
