@@ -5,10 +5,23 @@ $index = Get-Content -LiteralPath $indexPath -Raw -Encoding UTF8
 
 $heroBytes = [System.IO.File]::ReadAllBytes((Join-Path $output 'jinggangshan-hero.png'))
 $heroData = 'data:image/png;base64,' + [Convert]::ToBase64String($heroBytes)
+
+function Get-ImageDataUri {
+  param(
+    [Parameter(Mandatory = $true)][string]$PreferredPath,
+    [Parameter(Mandatory = $true)][string]$FallbackPath
+  )
+
+  $resolvedPath = if (Test-Path -LiteralPath $PreferredPath) { $PreferredPath } else { $FallbackPath }
+  return 'data:image/png;base64,' + [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($resolvedPath))
+}
+
 $customStickerPath = Join-Path $output 'assets\stickers\custom\red-soldier-custom-received.png'
-$customStickerData = 'data:image/png;base64,' + [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($customStickerPath))
+$customStickerFallback = Join-Path $output 'assets\stickers\red-soldier\01.png'
+$customStickerData = Get-ImageDataUri -PreferredPath $customStickerPath -FallbackPath $customStickerFallback
 $customSteadyPath = Join-Path $output 'assets\stickers\custom\red-soldier-custom-steady.png'
-$customSteadyData = 'data:image/png;base64,' + [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($customSteadyPath))
+$customSteadyFallback = Join-Path $output 'assets\stickers\red-soldier\08.png'
+$customSteadyData = Get-ImageDataUri -PreferredPath $customSteadyPath -FallbackPath $customSteadyFallback
 
 $embeddedStickers = @{}
 Get-ChildItem -LiteralPath (Join-Path $output 'assets\stickers') -Directory | Where-Object { $_.Name -in @('red-soldier', 'red-bugle', 'red-torch', 'bamboo-rice') } | ForEach-Object {
@@ -27,3 +40,4 @@ Set-Content -LiteralPath $singlePath -Value $single -Encoding UTF8 -NoNewline
 Push-Location $output
 Compress-Archive -Path index.html,jinggangshan-miniapp-prototype.html,jinggangshan-hero.png,jinggangshan-agent-api-example.mjs,jinggangshan-agent-api-example.py,AI-STICKER-SETUP.md,START-JGS-MINIAPP.ps1,.env.local.example,assets -DestinationPath jinggangshan-miniapp-prototype.zip -Force
 Pop-Location
+
